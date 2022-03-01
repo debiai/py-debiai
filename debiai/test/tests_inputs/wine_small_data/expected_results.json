@@ -1,0 +1,10 @@
+[
+    {
+        "name": "quality guess",
+        "type": "number"
+    },
+    {
+        "name": "quality error",
+        "type": "number"
+    }
+]

@@ -1,0 +1,5 @@
+{
+    "name": "loss",
+    "type": "number",
+    "default": 0 
+}
