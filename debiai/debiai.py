@@ -56,6 +56,9 @@ class Debiai:
         Create a new project from a name
         return the created Debiai_project object
         """
+        if project_name is None or project_name == "":
+            raise ValueError("Project name cannot be empty")
+
         project_id = utils.post_project(self.backend_url, project_name)
 
         return Debiai_project(project_name, project_id, self.backend_url)
