@@ -31,7 +31,7 @@ jobs:
         cd ..
         git clone https://github.com/debiai/debiai.git
         cd debiai/backend
-        pip install connexion swagger-ui-bundle scipy ujson
+        pip install flask_cors connexion swagger-ui-bundle scipy ujson
         python websrv.py &
         ls
         cd ../../debiai-py
