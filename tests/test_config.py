@@ -1,10 +1,7 @@
-import pytest
-
 from debiai.config import DebiaiConfig
 
 
-@pytest.fixture
-def default_config():
+def test_config():
     config = DebiaiConfig()
-
-    yield config
+    assert config is not None
+    assert config.debiai_app_url is not None
