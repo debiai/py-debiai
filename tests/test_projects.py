@@ -6,28 +6,28 @@ from debiai.config import get_config
 config = get_config()
 debiai_instance = Debiai(config.debiai_app_url)
 
-print("\n\nTesting the DebiAI Python module on the",
-      config.debiai_app_url, "DebiAI app\n")
+print(
+    "\n\nTesting the DebiAI Python module on the", config.debiai_app_url, "DebiAI app\n"
+)
 
-
-project_name = "test_project"
-test_project = None
+PROJECT_NAME = "test_project"
 
 
 def test_project_list():
     projects = debiai_instance.get_projects()
-    assert type(projects) is list
+    assert isinstance(projects, list)
 
 
 def test_project_creation():
     nb_projects = len(debiai_instance.get_projects())
 
-    global test_project
-    test_project = debiai_instance.create_project(project_name)
+    # Create a project
+    project = debiai_instance.create_project(PROJECT_NAME)
 
-    assert type(test_project) is Debiai_project
+    assert isinstance(project, Debiai_project)
     assert len(debiai_instance.get_projects()) == nb_projects + 1
 
+    # Test few edge cases
     with pytest.raises(ValueError) as excinfo:
         debiai_instance.create_project(None)
     assert "cannot be empty" in str(excinfo.value)
@@ -36,31 +36,25 @@ def test_project_creation():
         debiai_instance.create_project("")
     assert "cannot be empty" in str(excinfo.value)
 
-
-def test_project_with_same_name():
     with pytest.raises(ValueError) as excinfo:
-        debiai_instance.create_project(project_name)
+        debiai_instance.create_project(PROJECT_NAME)
     assert "already exist" in str(excinfo.value)
 
-
-def test_get_project_by_name():
-    project = debiai_instance.get_project(project_name)
+    # Get project by name
+    project = debiai_instance.get_project(PROJECT_NAME)
 
     assert project is not None
-    assert project.name == project_name
+    assert project.name == PROJECT_NAME
 
-
-def test_project_deletion():
-    nb_projects = len(debiai_instance.get_projects())
-
-    assert debiai_instance.delete_project(test_project)
-    assert len(debiai_instance.get_projects()) == nb_projects - 1
-    assert debiai_instance.get_project(project_name) is None
+    # delete project
+    assert debiai_instance.delete_project(project)
+    assert len(debiai_instance.get_projects()) == nb_projects
+    assert debiai_instance.get_project(PROJECT_NAME) is None
 
 
 def test_project_deletion_by_id():
-    test_project = debiai_instance.create_project(project_name)
+    project = debiai_instance.create_project(PROJECT_NAME)
     nb_projects = len(debiai_instance.get_projects())
-    debiai_instance.delete_project_byId(test_project.id)
+    debiai_instance.delete_project_byId(project.id)
 
     assert len(debiai_instance.get_projects()) == nb_projects - 1
