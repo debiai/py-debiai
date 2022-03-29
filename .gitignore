@@ -5,3 +5,4 @@ dist/
 build_package/
 htmlcov/
 .coverage
+.pytest_cache
