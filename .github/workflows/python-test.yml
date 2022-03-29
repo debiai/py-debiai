@@ -31,6 +31,7 @@ jobs:
         cd ..
         git clone https://github.com/debiai/debiai.git
         cd debiai/backend
+        pip install numpy
         pip install -r requirements.txt
         python websrv.py &
         ls
