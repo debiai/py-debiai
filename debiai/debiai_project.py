@@ -263,7 +263,7 @@ class Debiai_project:
 
     # Add samples
 
-    def add_samples(self, samples: np.array):
+    def add_samples(self, samples: np.array) -> bool:
         """
             Add samples to the curent project, based on his block structure.
             Each one of the block structure elements need to be present in the samples numpy array, exept for the results one.
@@ -303,6 +303,8 @@ class Debiai_project:
 
             nb_sample_added += SAMPLE_CHUNK_SIZE
             p_bar.update(min([nb_sample_added, SAMPLE_TO_UPLOAD]))
+
+        return True
 
     def add_samples_pd(self, df: pd.DataFrame, get_hash=None) -> bool:
         """

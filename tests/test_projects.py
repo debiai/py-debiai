@@ -37,6 +37,12 @@ def test_project_creation():
     assert "cannot be empty" in str(excinfo.value)
 
 
+def test_project_with_same_name():
+    with pytest.raises(ValueError) as excinfo:
+        debiai_instance.create_project(project_name)
+    assert "already exist" in str(excinfo.value)
+
+
 def test_get_project_by_name():
     project = debiai_instance.get_project(project_name)
 
