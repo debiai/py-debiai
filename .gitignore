@@ -3,3 +3,6 @@ __pycache__/
 .ipynb_checkpoints/
 dist/
 build_package/
+htmlcov/
+.coverage
+.pytest_cache
