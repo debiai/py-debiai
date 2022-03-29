@@ -1,8 +1,13 @@
 #!/bin/bash
 
+# exit when any command fails
+set -e
+
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m'
+
+# Build the package
 
 if test -d "build_package"; then
     echo -e $CYAN"Delete current build saved"$NC
@@ -17,6 +22,13 @@ mkdir build_package
 mv dist/*.tar.gz build_package
 
 echo -e $CYAN"Cleaning file"$NC
-./clean.sh
+rm -r dist *.egg-info build
 
-echo -e $GREEN"Finished: Build is in build_package folder !"$NC
+echo -e $GREEN"Build is in build_package folder !"$NC
+
+# Add the package to PyPi
+
+echo -e $CYAN"Add the package to PyPi"$NC
+python3 -m twine upload build_package/*.tar.gz
+
+echo -e $GREEN"Finished: Package is added to PyPi !"$NC
