@@ -33,8 +33,9 @@ jobs:
         cd debiai/backend
         pip install flask_cors connexion swagger-ui-bundle scipy ujson sklearn
         python websrv.py &
+        cd ../../
         ls
-        cd ../../debiai-py
+        cd py-debiai
     - name: Test with pytest
       run: |
         pytest --cov=debiai -s
