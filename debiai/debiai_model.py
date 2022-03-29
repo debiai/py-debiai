@@ -61,48 +61,25 @@ class Debiai_model:
         # Upload the results
         return utils.post_model_results_dict(self.project.backend_url, self.project.id, self.id, results, expected_results_order)
 
-    def add_results_df(self, results: pd.DataFrame, map_id=None, use_hash=False) -> dict:
+    def add_results_df(self, results: pd.DataFrame, map_id=None) -> bool:
         """
-        Add results from a dataFrame depending on use_hash parameter.
+        Add results from a dataFrame.
         """
-        if not use_hash:
-            # Add results with __add_results_pd sequentialy
-            p_bar = utils.progress_bar(
-                'Adding results', results.shape[0], self.name)
-            results_added = 0
+        # Add results with __add_results_pd sequentialy
+        p_bar = utils.progress_bar(
+            'Adding results', results.shape[0], self.name)
+        results_added = 0
 
-            chunk_size = 5000
-            for start in range(0, results.shape[0], chunk_size):
-                results_subset = results.iloc[start:start + chunk_size]
+        chunk_size = 5000
+        for start in range(0, results.shape[0], chunk_size):
+            results_subset = results.iloc[start:start + chunk_size]
 
-                self.__add_results_pd(results_subset, map_id=map_id)
+            self.__add_results_pd(results_subset, map_id=map_id)
 
-                results_added = results_added + results_subset.shape[0]
-                p_bar.update(results_added)
+            results_added = results_added + results_subset.shape[0]
+            p_bar.update(results_added)
 
-            return {}
-        else:
-            dic_results = {}
-            length = len(results)
-
-            if 'hash' not in results.columns:
-                raise ValueError(
-                    "The dataframe does not contain 'hash' expected column.")
-
-            for i in range(length):
-                res = []
-                for block in self.project.expected_results:
-                    if not block["name"] in results.columns:
-                        raise ValueError(
-                            "The dataframe does not contain '" + block['name'] + "' expected results column.")
-
-                    if block["type"] == "number":
-                        res.append(float(results.iloc[i][block["name"]]))
-                    else:
-                        res.append(results.iloc[i][block["name"]])
-                dic_results[results.iloc[i]['hash']] = res
-
-            return self.add_results_hash(dic_results)
+        return True
 
     def __add_results_pd(self, results: pd.DataFrame, map_id=None) -> bool:
         """ Add results to the model throught DataFrame """
