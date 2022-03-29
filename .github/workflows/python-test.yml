@@ -28,11 +28,13 @@ jobs:
         pip install -r requirements.txt
     - name: Setup backend
       run: |
+        cd ..
         git clone https://github.com/debiai/debiai.git
         cd debiai/backend
         pip install -r requirements.txt
         python websrv.py &
-        cd ../..
+        ls
+        cd ../../debiai-py
     - name: Test with pytest
       run: |
         pytest --cov=debiai -s
