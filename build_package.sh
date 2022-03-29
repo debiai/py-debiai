@@ -28,7 +28,7 @@ echo -e $GREEN"Build is in build_package folder !"$NC
 
 # Add the package to PyPi
 
-echo -e $CYAN"Add the package to PyPi"$NC
-python3 -m twine upload build_package/*.tar.gz
+# echo -e $CYAN"Add the package to PyPi"$NC
+# python3 -m twine upload build_package/*.tar.gz
 
-echo -e $GREEN"Finished: Package is added to PyPi !"$NC
+# echo -e $GREEN"Finished: Package is added to PyPi !"$NC
