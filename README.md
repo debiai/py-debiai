@@ -4,22 +4,33 @@
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-publish.yml/badge.svg)
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
 
-This Python module is an interface with DebiAI, you can use directly it in your Python project workflow to provide DebiAI with data.
+
+The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
+
+## Documentation
+[DebiAI Python module](https://debiai.irt-systemx.fr/dataInsertion/pythonModule)
 
 ## Features :
-- Create projects
-- Insert your project data
-- Insert model metadata and model results
-- Recovery of the samples selections made with the dashboard
-- Create tf.dataset from the project or selection
+- Basic:
+  - Project creation
+  - Project data insertion
+  - Model metadata and model results insertion
+- Advanced:
+  - Selection made with the dashboard samples recovery
+  - tf.dataset creation from the project selections (beta)
 
 ## Requierements:
-* A running DebiAI instance
+* [A running DebiAI instance](https://debiai.irt-systemx.fr/debiai/gettingStarted/installation/)
 * Numpy
 * Pandas
 * Eventualy Tensorflow
 
-## Quickstart
+## Installation
+
+```bash
+pip install --upgrade debiai
+```
+## Quick start
 
 ```python
 from debiai import debiai
@@ -105,53 +116,11 @@ debiai_model_2.add_results_df(results_df)
 ```
 <img src="./images/quickstart_results.png">
 
-## Installation
+## Limitations
+- Nan or empty values are not supported at the moment.
+- `/`, `.`, `:`, `?`, `*`, `\`, and `|`, are not supported in the project name and in the data/blocks ids.
 
-### With pip :
-
-Comming soon
-
-### By building the package :
-
-**Requirements :**
-* setuptools
-* wheel
-* pip
-
-
-Clone the module repository :
-```bash
-git clone git@github.com:DebiAI/py-debiai.git
-
-cd pythonModule
-```
-Execute
-```bash
-./build_package.sh
-```
-Install
-```bash
-pip install build_package/*.tar.gz
-```
-You can now use the DebiAI module inside your script with `from debiai import debiai`
-
-_(if any script does not work due to bad permissions, use `chmod +x *.sh`_
-
-### Update
-
-```bash
-cd pythonModule
-
-git pull
-
-./build_package.sh
-
-pip install build_package/*.tar.gz
-```
-
-# Documentation
-
-Comming soon
+> :warning: **If the data don't upload or don't load**: check that there is only string, number or boolean values (no Nan, objects or array values) in the data that you are uploading, and that there is no special character in the project name and the data ids.
 
 ---
 
