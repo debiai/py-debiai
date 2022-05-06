@@ -5,25 +5,33 @@ Before contributing, please check out our [Code of Conduct](CODE_OF_CONDUCT.md) 
 ## How to become a contributor
 
 We expect to see submissions on these topics:
-- [Documentation or correction requests](#documentation-or-correction-requests)
+- [Bug reports and feature requests](#bug-reports-and-feature-requests)
 
-- [New widget documentation](#new-widgets-documentation)
+- [New features, improvements, bug fixes or changes to existing features](#new-features-improvements-bug-fixes-or-changes-to-existing-features)
 
-### Documentation or correction requests
+- [Other ways to contribute](#other-ways-to-contribute)
 
-If you think that part of the documentation is missing or wrong, please [fill an issue](https://github.com/debiai/docs/issues/new).
+### Bug reports and feature requests
 
-### New widgets documentation
+If you have a bug to report or a feature to request, please [fill an issue](https://github.com/debiai/py-debiai/issues/new).
 
-If you want to add new widgets to DebiAI, please follow the [widget creation guide](https://github.com/debiai/debiai/blob/main/frontend/doc/new-widgets/Adding-new-widgets.md).
+### New features, improvements, bug fixes or changes to existing features
+
+If you want to contribute, navigate to the [Github "issues" tab](https://github.com/debiai/py-debiai/issues) and start looking through interesting issues. If you are not sure of where to start, then start by trying one of the smaller/easier issues here i.e. [issues with the "good first issue" label](https://github.com/debiai/py-debiai/labels/good%20first%20issue).
+
+If you decide to start on an issue, leave a comment so we and other people know that you're working on it, we will be happy to help.
+
+### Other ways to contribute
+
+Feel free to share your experience on your use cases with DebiAI on the [community discussions](https://github.com/debiai/debiai/discussions/categories/show-and-tell).
 
 ## Contribution standards
 
 ### Submission
 
-There is two ways to submit your contribution to DebiAI/docs you can either [fork the repository](#forking-the-repository) or [have your own branch on the DebiAI repository](#creating-a-branch).
+There is two ways to submit your contribution to DebiAI, you can either  [fork the repository](#forking-the-repository) or [have your own branch on the DebiAI repository](#creating-a-branch).
 
-If both cases, to submit your code, please make a pull request to our [main](https://github.com/debiai/docs/tree/main) branch. For those just getting started, Github has a [how to](https://help.github.com/articles/using-pull-requests/) about pull requests.
+If both cases, to submit your code, please make a pull request to our [main](https://github.com/debiai/py-debiai/tree/main) branch. For those just getting started, Github has a [how to](https://help.github.com/articles/using-pull-requests/) about pull requests.
 
 You will be asked to sign [our CLA (Contributing License Agreement)](https://gist.github.com/Tomansion/1d09a86bd0849f639fe59bf00eda730d#file-debiai_cla-md) before we can merge your code. Please read it before you start working on the project.
 
@@ -39,3 +47,10 @@ Here is a [complete guide on how to contribute by forking](https://sqldbawithabe
 
 If you don't want to fork the project, we allow contributors to have their own branch in the repository. Before being able to create a branch, you will need to be added as a contributor to the repository. You can do this by asking us at [debiai@irt-systemx.fr](mailto:debiai@irt-systemx.fr), on a discussion or by commenting on an issue.
 
+
+### General guidelines and philosophy for contribution
+
+Make sure your changes are consistent with the guidelines and follow the
+DebiAI coding style:
+
+*   Try to implement the unitary tests in the /tests folder if applicable.
