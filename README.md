@@ -2,7 +2,7 @@
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI](https://badge.fury.io/py/debiai.svg)](https://badge.fury.io/py/debiai)
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-publish.yml/badge.svg)
-![Build](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
+![Test](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
 
 
 The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
