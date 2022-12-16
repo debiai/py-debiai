@@ -15,7 +15,7 @@ if test -d "build_package"; then
 fi
 
 echo -e $CYAN"Build the package"$NC
-python setup.py sdist bdist_wheel
+python3 setup.py sdist bdist_wheel
 
 echo -e $CYAN"Save tar file"$NC
 mkdir build_package
@@ -25,10 +25,6 @@ echo -e $CYAN"Cleaning file"$NC
 rm -r dist *.egg-info build
 
 echo -e $GREEN"Build is in build_package folder !"$NC
-
-# Add the package to PyPi
-
-# echo -e $CYAN"Add the package to PyPi"$NC
-# python3 -m twine upload build_package/*.tar.gz
-
-# echo -e $GREEN"Finished: Package is added to PyPi !"$NC
+echo ""
+echo "You can now run:"
+echo "pip3 install build_package/*.tar.gz"

@@ -164,7 +164,6 @@ class Debiai_project:
         # Set the block_structure
         utils.add_blocklevel(self.backend_url, self.id, block_structure)
         self.block_structure = block_structure
-        return True
 
     # Results structure
     def expected_results_defined(self):
@@ -214,7 +213,6 @@ class Debiai_project:
 
         utils.post_expected_results(self.backend_url, self.id, expResults)
         self.expected_results = expResults
-        return expResults
 
     def add_expected_result(self, column: dict) -> List[dict]:
 
