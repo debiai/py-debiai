@@ -64,6 +64,11 @@ class Debiai:
         """
         Remove a project from the server
         """
+        if project is None:
+            raise ValueError("Project cannot be None")
+        if type(project) is not Debiai_project:
+            raise ValueError("Parameter must be a Debiai_project object, not a " + type(project).__name__ + ", use delete_project_byId instead")
+
         return utils.delete_project(self.backend_url, project.id)
 
     def delete_project_byId(self, projectId: str) -> bool:

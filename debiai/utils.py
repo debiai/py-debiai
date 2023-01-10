@@ -30,6 +30,10 @@ class progress_bar():
         self.update(0)
 
     def update(self, current_progression: int):
+        if self.size == 0:
+            sys.stdout.write(self.name + " : Progression bar size is 0")
+            return
+
         percent = 100.0 * current_progression / self.size
         sys.stdout.write('\r')
         sys.stdout.write(self.name + " : [{:{}}] {:>3}%"

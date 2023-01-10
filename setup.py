@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="debiai",
-    version="0.15.6",
+    version="0.19.0",
     author="IRT-SystemX",
     author_email="debiai@irt-systemx.fr",
     description="DebiAI python module",
