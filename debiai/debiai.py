@@ -38,18 +38,15 @@ class Debiai:
 
         return projects
 
-    def get_project(self, project_name: str) -> Debiai_project or None:
+    def get_project(self, project_id: str) -> Debiai_project or None:
         """
         Return a project by name, returns none if the project doesn't exist
         """
-        projects_list = utils.get_projects(self.backend_url)
-
-        for project in projects_list:
-            id = project["id"]
-            name = project["name"]
-            if name == project_name:
-                return Debiai_project(name, id, self.backend_url)
-        return None
+        project = utils.get_project(self.backend_url, project_id)
+        if project != None:
+            return Debiai_project(project["name"], project_id, self.backend_url)
+        else :
+            return None
 
     def create_project(self, project_name: str) -> Debiai_project:
         """
@@ -67,6 +64,11 @@ class Debiai:
         """
         Remove a project from the server
         """
+        if project is None:
+            raise ValueError("Project cannot be None")
+        if type(project) is not Debiai_project:
+            raise ValueError("Parameter must be a Debiai_project object, not a " + type(project).__name__ + ", use delete_project_byId instead")
+
         return utils.delete_project(self.backend_url, project.id)
 
     def delete_project_byId(self, projectId: str) -> bool:

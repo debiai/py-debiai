@@ -27,9 +27,19 @@ The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-system
 
 ## Installation
 
+### With Pypi
 ```bash
 pip install --upgrade debiai
 ```
+### Manual installation
+```bash
+# Build
+./build_package.sh
+
+# Install
+pip install build_package/*.tar.gz
+```
+
 ## Quick start
 
 ```python
