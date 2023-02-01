@@ -3,7 +3,7 @@
 [![PyPI](https://badge.fury.io/py/debiai.svg)](https://badge.fury.io/py/debiai)
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-publish.yml/badge.svg)
 ![Test](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
-
+[![Downloads](https://static.pepy.tech/badge/debiai)](https://pepy.tech/project/debiai)
 
 The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
 
