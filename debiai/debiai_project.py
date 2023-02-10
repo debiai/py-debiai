@@ -22,10 +22,10 @@ class Debiai_project:
     A Debiai project
     """
 
-    def __init__(self, name: str, id: str, backend_url: str):
+    def __init__(self, name: str, id: str, debiai_url: str):
         self.name = name
         self.id = id
-        self.backend_url = backend_url
+        self.debiai_url = debiai_url
 
         self.block_structure = None
         self.expected_results = None
@@ -45,7 +45,7 @@ class Debiai_project:
             utils.timestamp_to_date(self.update_date) + "\n"
 
     def project_infos(self):
-        project_info = utils.get_project(self.backend_url, self.id)
+        project_info = utils.get_project(self.debiai_url, self.id)
         if 'blockLevelInfo' in project_info:
             self.block_structure = project_info['blockLevelInfo']
         if 'resultStructure' in project_info:
@@ -162,7 +162,7 @@ class Debiai_project:
                                 "Unknown type of the column '" + collumn['name'] + "' in the block '" + block['name'] + "'. Use : ['text', 'number', 'boolean']")
 
         # Set the block_structure
-        utils.add_blocklevel(self.backend_url, self.id, block_structure)
+        utils.add_blocklevel(self.debiai_url, self.id, block_structure)
         self.block_structure = block_structure
 
     # Results structure
@@ -211,7 +211,7 @@ class Debiai_project:
 
             expResults.append(newRes)
 
-        utils.post_expected_results(self.backend_url, self.id, expResults)
+        utils.post_expected_results(self.debiai_url, self.id, expResults)
         self.expected_results = expResults
 
     def add_expected_result(self, column: dict) -> List[dict]:
@@ -244,7 +244,7 @@ class Debiai_project:
         }
 
         ret = utils.post_add_expected_results(
-            self.backend_url, self.id, newRes)
+            self.debiai_url, self.id, newRes)
         self.expected_results = ret
         return ret
 
@@ -255,7 +255,7 @@ class Debiai_project:
 
         # TODO check default type same as col type
 
-        ret = utils.remove_expected_results(self.backend_url, self.id, column)
+        ret = utils.remove_expected_results(self.debiai_url, self.id, column)
         self.expected_results = ret
         return ret
 
@@ -297,7 +297,7 @@ class Debiai_project:
 
             dict_to_add = np_to_dict(self.block_structure, np_to_add, indexMap)
 
-            utils.post_add_tree(self.backend_url, self.id, dict_to_add)
+            utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
 
             nb_sample_added += SAMPLE_CHUNK_SIZE
             p_bar.update(min([nb_sample_added, SAMPLE_TO_UPLOAD]))
@@ -334,7 +334,7 @@ class Debiai_project:
             df_to_add = df[nb_sample_added:nb_sample_added + SAMPLE_CHUNK_SIZE]
             dict_to_add = df_to_dict_tree(df_to_add, self.block_structure)
 
-            utils.post_add_tree(self.backend_url, self.id, dict_to_add)
+            utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
             nb_sample_added += SAMPLE_CHUNK_SIZE
             p_bar.update(min([nb_sample_added, SAMPLE_TO_UPLOAD]))
 
@@ -365,7 +365,7 @@ class Debiai_project:
                 "Can't create the model: The model name is requiered")
 
         # Call the backend
-        if utils.post_model(self.backend_url, self.id, name, metadata):
+        if utils.post_model(self.debiai_url, self.id, name, metadata):
             return Debiai_model(self, name, name)
         else:
             return False
@@ -382,13 +382,13 @@ class Debiai_project:
                 "The model '" + model_name + "' does not exist")
 
         # Call the backend
-        utils.delete_model(self.backend_url, self.id, model.id)
+        utils.delete_model(self.debiai_url, self.id, model.id)
 
     # Hash
 
     def check_hash(self, hash_list: list) -> list:
         """ Check list of hashs with backend """
-        res = utils.check_hash_exist(self.backend_url, self.id, hash_list)
+        res = utils.check_hash_exist(self.debiai_url, self.id, hash_list)
         return res
 
     def __get_hash_from_df(self, block_name: list, row, map_id: str):
@@ -429,7 +429,7 @@ class Debiai_project:
         """
         Get from the backend the list of selections, convert it in objects and returns it
         """
-        selections_json = utils.get_selections(self.backend_url, self.id)
+        selections_json = utils.get_selections(self.debiai_url, self.id)
 
         selections = []
         for s in selections_json:
@@ -450,7 +450,7 @@ class Debiai_project:
         """
         Get from the backend the list of tags, convert it in objects and returns it
         """
-        tags_json = utils.get_tags(self.backend_url, self.id)
+        tags_json = utils.get_tags(self.debiai_url, self.id)
 
         # Convert each request into a debiai_selection object
         tags = []
@@ -478,7 +478,7 @@ class Debiai_project:
         self.get_block_structure()  # Check that the block_structure has been set
 
         # Pulls all the data
-        sample_tree = utils.get_project_samples(self.backend_url, self.id)
+        sample_tree = utils.get_project_samples(self.debiai_url, self.id)
         # print(sample_tree)
         # Create the first row with the column names
         columns = np.array([])
@@ -531,7 +531,7 @@ class Debiai_project:
         while True:
             # Pull a sample tree
             sample_tree = utils.get_project_training_samples(
-                self.backend_url, self.id, i, PACH_SIZE)
+                self.debiai_url, self.id, i, PACH_SIZE)
 
             # Extract inputs & gdt
             inputs, gdt = debiai_utils.get_inputs_and_gdt_patch(
@@ -573,7 +573,7 @@ class Debiai_project:
         while True:
             # Pull a sample tree
             sample_tree = utils.get_project_training_samples(
-                self.backend_url, self.id, i, PACH_SIZE)
+                self.debiai_url, self.id, i, PACH_SIZE)
 
             # Extract samples & gdt
             samples, gdt = debiai_utils.get_samples_and_gdt_patch(

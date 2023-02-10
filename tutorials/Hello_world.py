@@ -11,12 +11,12 @@ import pandas as pd
 # - Insertion of model results from a dictionary
 # - Insertion of model results from a dataframe
 
-DEBIAI_BACKEND_URL = "http://localhost:3000/"
+DEBIAI_URL = "http://localhost:3000/"
 DEBIAI_PROJECT_NAME = "Wine quality v0"
 
 # Initialisation
 
-my_debiai = debiai.Debiai(DEBIAI_BACKEND_URL)
+my_debiai = debiai.Debiai(DEBIAI_URL)
 
 # Creating and selecting project
 debiai_project = my_debiai.get_project(DEBIAI_PROJECT_NAME)

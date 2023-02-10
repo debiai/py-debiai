@@ -59,7 +59,7 @@ class Debiai_model:
                 results[rootBlock], 0, sampleIndex, expected_results_order, str(rootBlock))
 
         # Upload the results
-        return utils.post_model_results_dict(self.project.backend_url, self.project.id, self.id, results, expected_results_order)
+        return utils.post_model_results_dict(self.project.debiai_url, self.project.id, self.id, results, expected_results_order)
 
     def add_results_df(self, results: pd.DataFrame, map_id=None) -> bool:
         """
@@ -199,7 +199,7 @@ class Debiai_model:
             hash_list.append(key)
 
         wrong_hash = utils.check_hash_exist(
-            self.project.backend_url, self.project.id, hash_list)
+            self.project.debiai_url, self.project.id, hash_list)
 
         # Add expected results order
         if expected_results_order != []:
@@ -218,6 +218,6 @@ class Debiai_model:
 
         # Push new results in backend
         err = utils.post_results_hash(
-            self.project.backend_url, self.project.id, self.id, results)
+            self.project.debiai_url, self.project.id, self.id, results)
 
         return wrong_values

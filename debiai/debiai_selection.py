@@ -34,7 +34,7 @@ class Debiai_selection:
     def get_numpy(self) -> np.array:
         # Pulls all the selection data
         sampleTree = utils.get_samples_from_selection(
-            self.project.backend_url, self.project.id, self.id)
+            self.project.debiai_url, self.project.id, self.id)
 
         block_structure = self.project.project_infos()['blockLevelInfo']
 
@@ -111,7 +111,7 @@ class Debiai_selection:
         for i in range(0, self.nbSamples, PACH_SIZE):
             # Pull a sample tree
             sampleTree = utils.get_training_samples_from_selection(
-                self.project.backend_url, self.project.id, self.id, i, PACH_SIZE)
+                self.project.debiai_url, self.project.id, self.id, i, PACH_SIZE)
 
             # Extract inputs & gdt
             inputs, gdt = debiai_utils.get_inputs_and_gdt_patch(
@@ -151,7 +151,7 @@ class Debiai_selection:
         for i in range(0, self.nbSamples, PACH_SIZE):
             # Pull a sample tree
             sampleTree = utils.get_training_samples_from_selection(
-                self.project.backend_url, self.project.id, self.id, i, PACH_SIZE)
+                self.project.debiai_url, self.project.id, self.id, i, PACH_SIZE)
 
             # Extract samples & gdt
             samples, gdt = debiai_utils.get_samples_and_gdt_patch(
