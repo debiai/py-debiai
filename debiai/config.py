@@ -13,15 +13,10 @@ class DebiaiConfig:
         self,
         debiai_app_url: str = "http://localhost:3000/",
     ):
-
         self.debiai_app_url = debiai_app_url
 
     def __repr__(self):
-        return (
-            f"DebiaiConfig ( "
-            f"debiai_app_url: {self.debiai_app_url} "
-            f")"
-        )
+        return f"DebiaiConfig ( " f"debiai_app_url: {self.debiai_app_url} " f")"
 
 
 _DEBIAI_CONFIG: Optional[DebiaiConfig] = None

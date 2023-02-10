@@ -4,6 +4,7 @@
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-publish.yml/badge.svg)
 ![Test](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
 [![Downloads](https://static.pepy.tech/badge/debiai)](https://pepy.tech/project/debiai)
+![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 
 The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
 
@@ -47,11 +48,11 @@ from debiai import debiai
 import pandas as pd
 import numpy as np
 
-DEBIAI_BACKEND_URL = "http://localhost:3000/"
+DEBIAI_URL = "http://localhost:3000/"
 DEBIAI_PROJECT_NAME = "Hello DebiAI"
 
 # Initialisation
-my_debiai = debiai.Debiai(DEBIAI_BACKEND_URL)
+my_debiai = debiai.Debiai(DEBIAI_URL)
 
 # Creating a project
 debiai_project = my_debiai.create_project(DEBIAI_PROJECT_NAME)

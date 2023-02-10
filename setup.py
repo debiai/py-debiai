@@ -2,14 +2,13 @@ import setuptools
 
 setuptools.setup(
     name="debiai",
-    version="0.20.1",
+    version="0.20.5",
     author="IRT-SystemX",
     author_email="debiai@irt-systemx.fr",
     description="DebiAI python module",
     license="Apache 2.0",
     keywords="DebiAI, Data vis, AI, Bias",
     url="https://github.com/debiai/py-debiai",
-
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     packages=setuptools.find_packages(),
@@ -18,10 +17,6 @@ setuptools.setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
-    install_requires=[
-        'numpy',
-        'pandas',
-        'requests'
-    ]
+    python_requires=">=3.6",
+    install_requires=["numpy", "pandas", "requests"],
 )

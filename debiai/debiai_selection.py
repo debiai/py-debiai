@@ -15,7 +15,15 @@ class Debiai_selection:
     It can belongs to a request
     """
 
-    def __init__(self, project, name: str, id: str, creationDate: int, nbSamples: str, requestId: str):
+    def __init__(
+        self,
+        project,
+        name: str,
+        id: str,
+        creationDate: int,
+        nbSamples: str,
+        requestId: str,
+    ):
         self.project = project
         self.name = name
         self.id = id
@@ -26,17 +34,17 @@ class Debiai_selection:
     def __repr__(self):
         return (
             "DEBIAI selection : '" + str(self.name) + "'\n"
-            "creation date : '" +
-            utils.timestamp_to_date(self.creationDate) + "'\n"
+            "creation date : '" + utils.timestamp_to_date(self.creationDate) + "'\n"
             "number of samples  : '" + str(self.nbSamples) + "'\n"
         )
 
     def get_numpy(self) -> np.array:
         # Pulls all the selection data
         sampleTree = utils.get_samples_from_selection(
-            self.project.backend_url, self.project.id, self.id)
+            self.project.debiai_url, self.project.id, self.id
+        )
 
-        block_structure = self.project.project_infos()['blockLevelInfo']
+        block_structure = self.project.project_infos()["blockLevelInfo"]
 
         """
             tree structure :
@@ -62,11 +70,11 @@ class Debiai_selection:
         columns = np.array([])
         # Create the first row with the column names
         for block in block_structure:
-            columns = np.append(columns, block['name'])
+            columns = np.append(columns, block["name"])
             for debiai_type in DEBIAI_TYPES:
                 if debiai_type in block:
                     for column in block[debiai_type]:
-                        columns = np.append(columns, column['name'])
+                        columns = np.append(columns, column["name"])
 
         data = debiai_utils.tree_to_array(block_structure, sampleTree)
         return np.vstack([columns, data])
@@ -79,30 +87,31 @@ class Debiai_selection:
         df = pd.DataFrame(data=numpy[1:], columns=col)
 
         # Convert object columns to number columns
-        cols = df.columns[df.dtypes.eq('object')]
-        df[cols] = df[cols].apply(pd.to_numeric, errors='ignore')
+        cols = df.columns[df.dtypes.eq("object")]
+        df[cols] = df[cols].apply(pd.to_numeric, errors="ignore")
 
         return df
 
     # Tensorflow dataset generator
 
-    def get_tf_dataset(self) -> 'tf.data.Dataset':
+    def get_tf_dataset(self) -> "tf.data.Dataset":
         import tensorflow as tf
 
-        block_structure = self.project.project_infos()['blockLevelInfo']
+        block_structure = self.project.project_infos()["blockLevelInfo"]
 
         excepted_inputs = []
         excepted_gdt = []
 
         for level in block_structure:
             if "inputs" in level:
-                excepted_inputs += level['inputs']
+                excepted_inputs += level["inputs"]
             if "groundTruth" in level:
-                excepted_gdt += level['groundTruth']
+                excepted_gdt += level["groundTruth"]
 
         return tf.data.Dataset.from_generator(
-            self.__load_samples, (tf.float32, tf.int32),
-            ((len(excepted_inputs), ), (len(excepted_gdt), ))
+            self.__load_samples,
+            (tf.float32, tf.int32),
+            ((len(excepted_inputs),), (len(excepted_gdt),)),
         )
 
     def __load_samples(self):
@@ -111,11 +120,13 @@ class Debiai_selection:
         for i in range(0, self.nbSamples, PACH_SIZE):
             # Pull a sample tree
             sampleTree = utils.get_training_samples_from_selection(
-                self.project.backend_url, self.project.id, self.id, i, PACH_SIZE)
+                self.project.debiai_url, self.project.id, self.id, i, PACH_SIZE
+            )
 
             # Extract inputs & gdt
             inputs, gdt = debiai_utils.get_inputs_and_gdt_patch(
-                self.project.block_structure, sampleTree)
+                self.project.block_structure, sampleTree
+            )
 
             # Pull undirect inputs from external source (image, ...) from inputs
             # TODO : try with Faurecia
@@ -126,22 +137,25 @@ class Debiai_selection:
             # TODO : create a clean progress bar
             print(str(i) + "/" + str(self.nbSamples))
 
-    def get_tf_dataset_with_provided_inputs(self,
-                                            input_function: 'function',
-                                            output_types: tuple,
-                                            output_shapes: tuple,
-                                            classes: list
-                                            ) -> 'tf.data.Dataset':
+    def get_tf_dataset_with_provided_inputs(
+        self,
+        input_function: "function",
+        output_types: tuple,
+        output_shapes: tuple,
+        classes: list,
+    ) -> "tf.data.Dataset":
         import tensorflow as tf
 
         self.dataset_generator_input_function = input_function
         self.dataset_generator_classes = classes
 
-        block_structure = self.project.project_infos()['blockLevelInfo']
+        block_structure = self.project.project_infos()["blockLevelInfo"]
 
-        return tf.data.Dataset.from_generator(self.__load_samples_with_provided_inputs,
-                                              output_types=output_types,
-                                              output_shapes=output_shapes)
+        return tf.data.Dataset.from_generator(
+            self.__load_samples_with_provided_inputs,
+            output_types=output_types,
+            output_shapes=output_shapes,
+        )
 
     def __load_samples_with_provided_inputs(self):
         PACH_SIZE = 1000  # Pull samples each PACH_SIZE samples
@@ -151,11 +165,13 @@ class Debiai_selection:
         for i in range(0, self.nbSamples, PACH_SIZE):
             # Pull a sample tree
             sampleTree = utils.get_training_samples_from_selection(
-                self.project.backend_url, self.project.id, self.id, i, PACH_SIZE)
+                self.project.debiai_url, self.project.id, self.id, i, PACH_SIZE
+            )
 
             # Extract samples & gdt
             samples, gdt = debiai_utils.get_samples_and_gdt_patch(
-                self.project.block_structure, sampleTree)
+                self.project.block_structure, sampleTree
+            )
 
             # Yield each one of the samples to the dataset
             for j in range(len(samples)):
