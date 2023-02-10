@@ -10,7 +10,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
         parent = None
         #  First block exception
         if len(block_structure) > 1:
-            for (i, block) in enumerate(ret):
+            for i, block in enumerate(ret):
                 if block["name"] == sample[indexMap[block_structure[0]["name"]]]:
                     # Block already created
                     parent = ret[i]
@@ -18,8 +18,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
 
         if parent is None:
             #  Block not created, creating block
-            newBlock = __create_block(
-                block_structure[0], sample, indexMap)
+            newBlock = __create_block(block_structure[0], sample, indexMap)
             ret.append(newBlock)
             parent = newBlock
 
@@ -28,7 +27,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
             blockNameIndex = indexMap[blockStruct["name"]]
 
             nextParent = None
-            for (i, block) in enumerate(parent["childrenInfoList"]):
+            for i, block in enumerate(parent["childrenInfoList"]):
                 if block["name"] == sample[blockNameIndex]:
                     # Block already created
                     nextParent = block
@@ -37,8 +36,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
 
             if nextParent is None:
                 #  Block not created, creating block
-                newBlock = __create_block(
-                    blockStruct, sample, indexMap)
+                newBlock = __create_block(blockStruct, sample, indexMap)
                 parent["childrenInfoList"].append(newBlock)
                 parent = newBlock
 
@@ -51,21 +49,25 @@ def check_np_array(block_structure: list, samples: np.array):
     # Check array compliance
     for block in block_structure:
         if block["name"] not in samples[0]:
-            raise ValueError("'" + block["name"] +
-                             "' is missing from the given samples")
+            raise ValueError(
+                "'" + block["name"] + "' is missing from the given samples"
+            )
 
-        indexMap[block["name"]] = np.where(
-            samples[0] == block["name"])[0][0]
+        indexMap[block["name"]] = np.where(samples[0] == block["name"])[0][0]
 
         for type_ in DEBIAI_TYPES:
             if type_ in block:
                 for col in block[type_]:
                     if col["name"] not in samples[0]:
-                        raise ValueError("'" + col["name"] + "' " + type_ +
-                                         " is missing from the given samples")
+                        raise ValueError(
+                            "'"
+                            + col["name"]
+                            + "' "
+                            + type_
+                            + " is missing from the given samples"
+                        )
 
-                    indexMap[col["name"]] = np.where(
-                        samples[0] == col["name"])[0][0]
+                    indexMap[col["name"]] = np.where(samples[0] == col["name"])[0][0]
                     #  TODO check column type
     return indexMap
 
@@ -73,7 +75,7 @@ def check_np_array(block_structure: list, samples: np.array):
 def __create_block(blockStruct, sample, indexMap):
     newBlock = {
         "name": str(sample[indexMap[blockStruct["name"]]]),
-        "childrenInfoList": []
+        "childrenInfoList": [],
     }
 
     for type_ in DEBIAI_TYPES:
@@ -81,10 +83,8 @@ def __create_block(blockStruct, sample, indexMap):
             newBlock[type_] = []
             for col in blockStruct[type_]:
                 colIndex = indexMap[col["name"]]
-                if col['type'] == "text":
-                    newBlock[type_].append(
-                        sample[colIndex])
+                if col["type"] == "text":
+                    newBlock[type_].append(sample[colIndex])
                 else:
-                    newBlock[type_].append(
-                        float(sample[colIndex]))
+                    newBlock[type_].append(float(sample[colIndex]))
     return newBlock

@@ -13,10 +13,12 @@ from typing import List
 import utils as utils
 from .debiai_project import Debiai_project
 
+
 class Debiai:
     """
     Each Debiai object represent a Debiai server instance
     """
+
     debiai_url = None
 
     def __init__(self, debiai_url: str):
@@ -44,7 +46,7 @@ class Debiai:
         project = utils.get_project(self.debiai_url, project_id)
         if project != None:
             return Debiai_project(project["name"], project_id, self.debiai_url)
-        else :
+        else:
             return None
 
     def create_project(self, project_name: str) -> Debiai_project:
@@ -66,7 +68,11 @@ class Debiai:
         if project is None:
             raise ValueError("Project cannot be None")
         if type(project) is not Debiai_project:
-            raise ValueError("Parameter must be a Debiai_project object, not a " + type(project).__name__ + ", use delete_project_byId instead")
+            raise ValueError(
+                "Parameter must be a Debiai_project object, not a "
+                + type(project).__name__
+                + ", use delete_project_byId instead"
+            )
 
         return utils.delete_project(self.debiai_url, project.id)
 
