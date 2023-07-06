@@ -22,10 +22,10 @@ class Debiai_project:
     A Debiai project
     """
 
-    def __init__(self, name: str, id: str, backend_url: str):
+    def __init__(self, name: str, id: str, debiai_url: str):
         self.name = name
         self.id = id
-        self.backend_url = backend_url
+        self.debiai_url = debiai_url
 
         self.block_structure = None
         self.expected_results = None
@@ -52,7 +52,7 @@ class Debiai_project:
         )
 
     def project_infos(self):
-        project_info = utils.get_project(self.backend_url, self.id)
+        project_info = utils.get_project(self.debiai_url, self.id)
         if "blockLevelInfo" in project_info:
             self.block_structure = project_info["blockLevelInfo"]
         if "resultStructure" in project_info:
@@ -87,7 +87,7 @@ class Debiai_project:
     def set_blockstructure(self, block_structure: List[dict]) -> bool:
         """
         Add a block structure to the project
-        This step is requiered before uploading data
+        This step is required before uploading data
         Throw error if the block structure is already created
 
         block_structure syntax:
@@ -136,7 +136,7 @@ class Debiai_project:
         ]
 
         The last block will be considered the sample block, and will mark the end of the tree
-        At least one block is requiered
+        At least one block is required
 
         """
 
@@ -147,12 +147,12 @@ class Debiai_project:
 
         # Check that there is at least one block
         if not len(block_structure):
-            raise ValueError("At least a block is requiered in the block structure")
+            raise ValueError("At least a block is required in the block structure")
 
         # Check that all the properties are correct
         for i, block in enumerate(block_structure):
             if "name" not in block:
-                raise ValueError("The 'name' is requiered in the block n°" + (i + 1))
+                raise ValueError("The 'name' is required in the block n°" + str(i + 1))
 
             for type_ in block:
                 if type_ not in DEBIAI_TYPES and type_ != "name":
@@ -165,34 +165,34 @@ class Debiai_project:
 
             for debiai_type in DEBIAI_TYPES:
                 if debiai_type in block:
-                    for collumn in block[debiai_type]:
-                        if "name" not in collumn:
+                    for column in block[debiai_type]:
+                        if "name" not in column:
                             raise ValueError(
-                                "The name of the column is requiered in the '"
+                                "The name of the column is required in the '"
                                 + debiai_type
                                 + "' in the block '"
                                 + block["name"]
                                 + "'"
                             )
-                        if "type" not in collumn:
+                        if "type" not in column:
                             raise ValueError(
-                                "The type of the column is requiered in the '"
+                                "The type of the column is required in the '"
                                 + debiai_type
                                 + "' in the block '"
                                 + block["name"]
                                 + "'"
                             )
-                        if collumn["type"] not in ["text", "number", "boolean"]:
+                        if column["type"] not in ["text", "number", "boolean"]:
                             raise ValueError(
                                 "Unknown type of the column '"
-                                + collumn["name"]
+                                + column["name"]
                                 + "' in the block '"
                                 + block["name"]
                                 + "'. Use : ['text', 'number', 'boolean']"
                             )
 
         # Set the block_structure
-        utils.add_blocklevel(self.backend_url, self.id, block_structure)
+        utils.add_blocklevel(self.debiai_url, self.id, block_structure)
         self.block_structure = block_structure
 
     # Results structure
@@ -222,9 +222,9 @@ class Debiai_project:
 
         for column in expected_results:
             if "name" not in column:
-                raise ValueError("The attribute 'name' is requiered in each column")
+                raise ValueError("The attribute 'name' is required in each column")
             if "type" not in column:
-                raise ValueError("The attribute 'type' is requiered in each column")
+                raise ValueError("The attribute 'type' is required in each column")
 
             col = [c for c in expResults if c["name"] == column["name"]]
             if len(col) > 0:
@@ -238,7 +238,7 @@ class Debiai_project:
 
             expResults.append(newRes)
 
-        utils.post_expected_results(self.backend_url, self.id, expResults)
+        utils.post_expected_results(self.debiai_url, self.id, expResults)
         self.expected_results = expResults
 
     def add_expected_result(self, column: dict) -> List[dict]:
@@ -247,15 +247,15 @@ class Debiai_project:
 
         if "name" not in column:
             raise ValueError(
-                "The attribute 'name' is requiered in the new result column"
+                "The attribute 'name' is required in the new result column"
             )
         if "type" not in column:
             raise ValueError(
-                "The attribute 'type' is requiered in the new result column"
+                "The attribute 'type' is required in the new result column"
             )
         if "default" not in column:
             raise ValueError(
-                "The attribute 'default' is requiered in the new result column"
+                "The attribute 'default' is required in the new result column"
             )
 
         # TODO check default type same as col type
@@ -270,7 +270,7 @@ class Debiai_project:
             "default": column["default"],
         }
 
-        ret = utils.post_add_expected_results(self.backend_url, self.id, newRes)
+        ret = utils.post_add_expected_results(self.debiai_url, self.id, newRes)
         self.expected_results = ret
         return ret
 
@@ -280,7 +280,7 @@ class Debiai_project:
 
         # TODO check default type same as col type
 
-        ret = utils.remove_expected_results(self.backend_url, self.id, column)
+        ret = utils.remove_expected_results(self.debiai_url, self.id, column)
         self.expected_results = ret
         return ret
 
@@ -300,8 +300,8 @@ class Debiai_project:
                                 block_1, context_a, context_b, block_2, context_c, input_d, samples, input_e, GDT_f
         note that the result_g is not asked.
 
-        If one the the requiered labels are missing, the samples wont be uploaded.
-        Any labels that are not requiered will be ignored
+        If one the the required labels are missing, the samples wont be uploaded.
+        Any labels that are not required will be ignored
         The folowing rows, if the types are correct, will be added to the database.
         """
 
@@ -323,7 +323,7 @@ class Debiai_project:
 
             dict_to_add = np_to_dict(self.block_structure, np_to_add, indexMap)
 
-            utils.post_add_tree(self.backend_url, self.id, dict_to_add)
+            utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
 
             nb_sample_added += SAMPLE_CHUNK_SIZE
             p_bar.update(min([nb_sample_added, SAMPLE_TO_UPLOAD]))
@@ -344,8 +344,8 @@ class Debiai_project:
                                 block_1, context_a, context_b, block_2, context_c, input_d, samples, input_e, GDT_f
         note that the result_g is not asked.
 
-        If one the the requiered labels are missing, the samples wont be uploaded.
-        Any labels that aren't requiered will be ignored
+        If one the the required labels are missing, the samples wont be uploaded.
+        Any labels that aren't required will be ignored
         """
         self.get_block_structure()  # Check that the block_structure has been set
 
@@ -359,7 +359,7 @@ class Debiai_project:
             df_to_add = df[nb_sample_added : nb_sample_added + SAMPLE_CHUNK_SIZE]
             dict_to_add = df_to_dict_tree(df_to_add, self.block_structure)
 
-            utils.post_add_tree(self.backend_url, self.id, dict_to_add)
+            utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
             nb_sample_added += SAMPLE_CHUNK_SIZE
             p_bar.update(min([nb_sample_added, SAMPLE_TO_UPLOAD]))
 
@@ -386,10 +386,10 @@ class Debiai_project:
     def create_model(self, name: str, metadata: dict = {}) -> Debiai_model:
         #  check parameters
         if not name:
-            raise ValueError("Can't create the model: The model name is requiered")
+            raise ValueError("Can't create the model: The model name is required")
 
         # Call the backend
-        if utils.post_model(self.backend_url, self.id, name, metadata):
+        if utils.post_model(self.debiai_url, self.id, name, metadata):
             return Debiai_model(self, name, name)
         else:
             return False
@@ -397,20 +397,20 @@ class Debiai_project:
     def delete_model(self, model_name: str) -> bool:
         #  check parameters
         if not model_name:
-            raise ValueError("Can't delete the model: The model name is requiered")
+            raise ValueError("Can't delete the model: The model name is required")
         # Find the model ID
         model = self.get_model(model_name)
         if not model:
             raise ValueError("The model '" + model_name + "' does not exist")
 
         # Call the backend
-        utils.delete_model(self.backend_url, self.id, model.id)
+        utils.delete_model(self.debiai_url, self.id, model.id)
 
     # Hash
 
     def check_hash(self, hash_list: list) -> list:
         """Check list of hashs with backend"""
-        res = utils.check_hash_exist(self.backend_url, self.id, hash_list)
+        res = utils.check_hash_exist(self.debiai_url, self.id, hash_list)
         return res
 
     def __get_hash_from_df(self, block_name: list, row, map_id: str):
@@ -452,7 +452,7 @@ class Debiai_project:
         """
         Get from the backend the list of selections, convert it in objects and returns it
         """
-        selections_json = utils.get_selections(self.backend_url, self.id)
+        selections_json = utils.get_selections(self.debiai_url, self.id)
 
         selections = []
         for s in selections_json:
@@ -481,7 +481,7 @@ class Debiai_project:
         """
         Get from the backend the list of tags, convert it in objects and returns it
         """
-        tags_json = utils.get_tags(self.backend_url, self.id)
+        tags_json = utils.get_tags(self.debiai_url, self.id)
 
         # Convert each request into a debiai_selection object
         tags = []
@@ -510,7 +510,7 @@ class Debiai_project:
         self.get_block_structure()  # Check that the block_structure has been set
 
         # Pulls all the data
-        sample_tree = utils.get_project_samples(self.backend_url, self.id)
+        sample_tree = utils.get_project_samples(self.debiai_url, self.id)
         # print(sample_tree)
         # Create the first row with the column names
         columns = np.array([])
@@ -564,7 +564,7 @@ class Debiai_project:
         while True:
             # Pull a sample tree
             sample_tree = utils.get_project_training_samples(
-                self.backend_url, self.id, i, PACH_SIZE
+                self.debiai_url, self.id, i, PACH_SIZE
             )
 
             # Extract inputs & gdt
@@ -611,7 +611,7 @@ class Debiai_project:
         while True:
             # Pull a sample tree
             sample_tree = utils.get_project_training_samples(
-                self.backend_url, self.id, i, PACH_SIZE
+                self.debiai_url, self.id, i, PACH_SIZE
             )
 
             # Extract samples & gdt

@@ -28,7 +28,7 @@ class Debiai_tag:
     def load_tags(self):
         if self.tags is None:
             # TODO: check if version has changed before loading
-            tag = utils.get_tag(self.project.backend_url, self.project.id, self.id)
+            tag = utils.get_tag(self.project.debiai_url, self.project.id, self.id)
 
             if tag is None or "tags" not in tag or tag["tags"] is None:
                 raise ValueError("Error while loading the tag values")
@@ -60,7 +60,7 @@ class Debiai_tag:
     def get_numpy(self, tag_value: int) -> np.array:
         # Pull all samples with the given tag value
         sampleTree = utils.get_samples_from_tag(
-            self.project.backend_url, self.project.id, self.id, tag_value
+            self.project.debiai_url, self.project.id, self.id, tag_value
         )
 
         block_structure = self.project.project_infos()["blockLevelInfo"]

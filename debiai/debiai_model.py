@@ -75,7 +75,7 @@ class Debiai_model:
 
         # Upload the results
         return utils.post_model_results_dict(
-            self.project.backend_url,
+            self.project.debiai_url,
             self.project.id,
             self.id,
             results,
@@ -236,7 +236,7 @@ class Debiai_model:
             hash_list.append(key)
 
         wrong_hash = utils.check_hash_exist(
-            self.project.backend_url, self.project.id, hash_list
+            self.project.debiai_url, self.project.id, hash_list
         )
 
         # Add expected results order
@@ -257,7 +257,7 @@ class Debiai_model:
 
         # Push new results in backend
         err = utils.post_results_hash(
-            self.project.backend_url, self.project.id, self.id, results
+            self.project.debiai_url, self.project.id, self.id, results
         )
 
         return wrong_values
