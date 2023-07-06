@@ -25,12 +25,12 @@ class Debiai:
         self.debiai_url = debiai_url
 
         # Check if the url is valid
-        if self.backend_url is None or self.backend_url == "":
+        if self.debiai_url is None or self.debiai_url == "":
             raise ValueError("Backend url cannot be empty")
 
         # Remove trailing slash
-        if self.backend_url[-1] == "/":
-            self.backend_url = self.backend_url[:-1]
+        if self.debiai_url[-1] == "/":
+            self.debiai_url = self.debiai_url[:-1]
 
         utils.check_back(debiai_url)
 
