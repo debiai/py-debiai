@@ -220,9 +220,7 @@ def post_model(debiai_url, id, name, metadata):
     """Add to an existing project a tree of samples"""
     data = {"name": name, "metadata": metadata}
 
-    r = requests.request(
-        "POST", url=project_url(debiai_url, id) + "/models", json=data
-    )
+    r = requests.request("POST", url=project_url(debiai_url, id) + "/models", json=data)
 
     if r.status_code == 409:
         print("Warning : The model " + name + " already exists")
