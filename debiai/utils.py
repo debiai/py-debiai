@@ -72,9 +72,9 @@ def check_back(backend_url):
                     raise ConnectionError(
                         "An application is running on the url : "
                         + backend_url
-                        + " but this is not DEBIAI"
+                        + " but this is not DebiAI"
                     )
-                logging.info("DEBIAI Server is up !\n")
+                logging.info("DebiAI is up !\n")
                 return True
             except (
                 requests.exceptions.ConnectionError,
@@ -83,12 +83,10 @@ def check_back(backend_url):
             ):
                 logging.warning("Backend is down")
                 raise ConnectionError(
-                    "Unable to connect to the DEBIAI backend at the url : "
+                    "Unable to connect to the DebiAI backend at the url : "
                     + backend_url
                 )
 
-        logging.info("DEBIAI Server is up !\n")
-        return True
     except (
         requests.exceptions.ConnectionError,
         requests.exceptions.Timeout,
@@ -96,63 +94,51 @@ def check_back(backend_url):
     ):
         logging.warning("Backend is down")
         raise ConnectionError(
-            "Unable to connect to the DEBIAI backend at the url : " + backend_url
+            "Unable to connect to the DebiAI backend at the url : " + backend_url
         )
 
 
-def add_dp_id(project_id):
-    if "|" not in project_id:
-        return PYTHON_DATA_PROVIDER_ID + "|" + project_id
-    return project_id
+def projects_url(backend_url):
+    return backend_url + "/data-providers/" + PYTHON_DATA_PROVIDER_ID + "/projects"
+
+
+def project_url(backend_url, project_id):
+    return projects_url(backend_url) + "/" + project_id
 
 
 # Projects
-
-
 def get_projects(backend_url):
     """Return projects list as JSON"""
-    try:
-        r = requests.request("GET", backend_url + "projects", headers={}, data={})
-        logging.info("Get_projects response: " + str(r.status_code))
-        logging.info(r.text)
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request("GET", projects_url(backend_url))
+    logging.info("Get_projects response: " + str(r.status_code))
+    logging.info(r.text)
+    return json.loads(r.text)
 
 
 def get_project(backend_url, id):
     """Return project (JSON) from id"""
-    try:
-        r = requests.request("GET", backend_url + "projects/" + add_dp_id(id))
-        logging.info("Get_project response: " + str(r.status_code))
-        logging.info(r.text)
-        if r.status_code == 404:
-            return None
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request("GET", project_url(backend_url, id))
+    logging.info("Get_project response: " + str(r.status_code))
+    logging.info(r.text)
+    if r.status_code == 404:
+        return None
+    return json.loads(r.text)
 
 
 def post_project(backend_url, name):
     """Post new project and return project id"""
     data = {"projectName": name, "blockLevelInfo": [{"name": "file"}]}
-
-    try:
-        r = requests.request("POST", url=backend_url + "projects", json=data)
-        if r.status_code != 200:
-            raise ValueError(json.loads(r.text))
-        info = json.loads(r.text)
-        return info["id"]
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request("POST", url=backend_url + "/projects", json=data)
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    info = json.loads(r.text)
+    return info["id"]
 
 
 def delete_project(backend_url, id):
     """Delete project from id"""
     try:
-        r = requests.request(
-            "DELETE", url=backend_url + "projects/" + add_dp_id(id), headers={}, json={}
-        )
+        r = requests.request("DELETE", url=project_url(backend_url, id))
         if r.status_code != 200:
             raise ValueError(json.loads(r.text))
 
@@ -162,20 +148,17 @@ def delete_project(backend_url, id):
         return False
 
 
-# Block struture
+# Block structure
 def post_expected_results(backend_url, id, expected_results):
     """set the expected_results to a project"""
-    try:
-        r = requests.request(
-            "POST",
-            url=backend_url + "projects/" + add_dp_id(id) + "/resultsStructure",
-            json=expected_results,
-        )
-        if r.status_code != 200:
-            raise ValueError(json.loads(r.text))
-        return json.loads(r.content)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "POST",
+        url=project_url(backend_url, id) + "/resultsStructure",
+        json=expected_results,
+    )
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    return json.loads(r.content)
 
 
 def add_blocklevel(backend_url, id, blocklevel):
@@ -184,64 +167,50 @@ def add_blocklevel(backend_url, id, blocklevel):
     Not used very much, should be removed
     TODO - Check if blocklevel already exists
     """
-    try:
-        r = requests.request(
-            "POST",
-            url=backend_url + "projects/" + add_dp_id(id) + "/blocklevels",
-            json=blocklevel,
-        )
-        logging.info("Add block response :" + str(r.status_code) + "-" + str(r.text))
-        if r.status_code != 200:
-            raise ValueError(json.loads(r.text))
-        logging.info("Added blocklevel to project " + id)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "POST",
+        url=project_url(backend_url, id) + "/blocklevels",
+        json=blocklevel,
+    )
+    logging.info("Add block response :" + str(r.status_code) + "-" + str(r.text))
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    logging.info("Added blocklevel to project " + id)
 
 
 def post_add_expected_results(backend_url, id, expected_result):
     """Add expected_result to a project"""
-    try:
-        r = requests.request(
-            "POST",
-            url=backend_url + "projects/" + add_dp_id(id) + "/expectedResult",
-            json=expected_result,
-        )
-        if r.status_code != 200:
-            raise ValueError(json.loads(r.text))
-        return json.loads(r.content)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "POST",
+        url=project_url(backend_url, id) + "/expectedResult",
+        json=expected_result,
+    )
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    return json.loads(r.content)
 
 
 def remove_expected_results(backend_url, id, expected_result):
     """remove expected_result from a project"""
     obj = {"value": expected_result}
 
-    try:
-        r = requests.request(
-            "POST",
-            url=backend_url + "projects/" + add_dp_id(id) + "/del_expectedResult",
-            json=obj,
-        )
-        if r.status_code != 200:
-            raise ValueError(json.loads(r.text))
-        return json.loads(r.content)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "POST",
+        url=project_url(backend_url, id) + "/del_expectedResult",
+        json=obj,
+    )
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    return json.loads(r.content)
 
 
 # Selections
 def get_selections(backend_url, id):
     """Return a project get_selections as JSON"""
-    try:
-        r = requests.request(
-            "GET", backend_url + "projects/" + add_dp_id(id) + "/selections"
-        )
-        logging.info("get_requests response: " + str(r.status_code))
-        logging.info(r.text)
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request("GET", project_url(backend_url, id) + "/selections")
+    logging.info("get_requests response: " + str(r.status_code))
+    logging.info(r.text)
+    return json.loads(r.text)
 
 
 # Models
@@ -249,19 +218,16 @@ def post_model(backend_url, id, name, metadata):
     """Add to an existing project a tree of samples"""
     data = {"name": name, "metadata": metadata}
 
-    try:
-        r = requests.request(
-            "POST", url=backend_url + "projects/" + add_dp_id(id) + "/models", json=data
-        )
+    r = requests.request(
+        "POST", url=project_url(backend_url, id) + "/models", json=data
+    )
 
-        if r.status_code == 409:
-            print("Warning : The model " + name + " already exists")
-            return 409
-        if r.status_code != 200:
-            raise ValueError("post_model : " + json.loads(r.text))
-        return True
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    if r.status_code == 409:
+        print("Warning : The model " + name + " already exists")
+        return 409
+    if r.status_code != 200:
+        raise ValueError("post_model : " + json.loads(r.text))
+    return True
 
 
 def post_model_results_dict(
@@ -272,9 +238,7 @@ def post_model_results_dict(
     try:
         r = requests.request(
             "POST",
-            url=backend_url
-            + "projects/"
-            + add_dp_id(project_id)
+            url=project_url(backend_url, project_id)
             + "/models/"
             + modelId
             + "/resultsDict",
@@ -284,8 +248,7 @@ def post_model_results_dict(
         if r.status_code != 200:
             raise ValueError("post_model_results_dict : " + json.loads(r.text))
         return True
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+
     except json.decoder.JSONDecodeError as e:
         raise ValueError("internal server error")
 
@@ -295,11 +258,7 @@ def delete_model(backend_url, project_id, model_id):
     try:
         r = requests.request(
             "DELETE",
-            url=backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/models/"
-            + model_id,
+            url=project_url(backend_url, project_id) + "/models/" + model_id,
         )
         if r.status_code != 200:
             raise ValueError(json.loads(r.text))
@@ -312,52 +271,35 @@ def delete_model(backend_url, project_id, model_id):
 # Tags
 def get_tags(backend_url, project_id):
     """Return a tag as JSON form id"""
-    try:
-        r = requests.request(
-            "GET", url=backend_url + "projects/" + add_dp_id(project_id) + "/tags"
-        )
-        logging.info("get_tags response: " + str(r.status_code))
-        logging.info(r.text)
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request("GET", url=project_url(backend_url, project_id) + "/tags")
+    logging.info("get_tags response: " + str(r.status_code))
+    logging.info(r.text)
+    return json.loads(r.text)
 
 
 def get_tag(backend_url, project_id, tag_id):
     """Return a tag as JSON form id"""
-    try:
-        r = requests.request(
-            "GET",
-            url=backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/tags/"
-            + str(tag_id),
-        )
-        logging.info("get_tag response: " + str(r.status_code))
-        logging.info(r.text)
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id) + "/tags/" + str(tag_id),
+    )
+    logging.info("get_tag response: " + str(r.status_code))
+    logging.info(r.text)
+    return json.loads(r.text)
 
 
 def get_samples_from_tag(backend_url, project_id, tag_id, tag_value):
     """Return a sample tree (JSON)"""
-    try:
-        r = requests.request(
-            "GET",
-            backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/tags/"
-            + str(tag_id)
-            + "/samples/"
-            + str(tag_value),
-        )
-        logging.info("get_samples_from_tag response: " + str(r.status_code))
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id)
+        + "/tags/"
+        + str(tag_id)
+        + "/samples/"
+        + str(tag_value),
+    )
+    logging.info("get_samples_from_tag response: " + str(r.status_code))
+    return json.loads(r.text)
 
 
 # Sample tree
@@ -391,99 +333,72 @@ def post_add_tree(backend_url, project_id, tree):
 
     data = {"blockTree": tree}
 
-    try:
-        r = requests.request(
-            "POST",
-            url=backend_url + "projects/" + add_dp_id(project_id) + "/blocks",
-            json=data,
-        )
-        if r.status_code == 201:
-            print("No block added")
-        elif r.status_code != 200:
-            raise ValueError("Internal server error while adding the datatree")
-        return True
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "POST",
+        url=project_url(backend_url, project_id) + "/blocks",
+        json=data,
+    )
+    if r.status_code == 201:
+        print("No block added")
+    elif r.status_code != 200:
+        raise ValueError("Internal server error while adding the datatree")
+    return True
 
 
 def get_project_samples(backend_url, project_id, depth=0):
     """Return a sample tree (JSON)"""
-    try:
-        r = requests.request(
-            "GET",
-            backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/blocks?depth="
-            + str(depth),
-        )
-        logging.info("get_project_samples response: " + str(r.status_code))
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id) + "/blocks?depth=" + str(depth),
+    )
+    logging.info("get_project_samples response: " + str(r.status_code))
+    return json.loads(r.text)
 
 
 def get_samples_from_selection(backend_url, project_id, selectionId, depth=0):
     """Return a sample tree (JSON)"""
-    try:
-        r = requests.request(
-            "GET",
-            backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/blocks/"
-            + selectionId
-            + "?depth="
-            + str(depth),
-        )
-        logging.info("get_samples_from_selection response: " + str(r.status_code))
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id)
+        + "/blocks/"
+        + selectionId
+        + "?depth="
+        + str(depth),
+    )
+    logging.info("get_samples_from_selection response: " + str(r.status_code))
+    return json.loads(r.text)
 
 
 def get_project_training_samples(backend_url, project_id, start, size):
     """Return a sample inputs and gdt array ready to be processed"""
-    try:
-        r = requests.request(
-            "GET",
-            backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/trainingSamples?start="
-            + str(start)
-            + "&size="
-            + str(size),
-        )
-        logging.info("get_project_training_samples response: " + str(r.status_code))
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id)
+        + "/trainingSamples?start="
+        + str(start)
+        + "&size="
+        + str(size),
+    )
+    logging.info("get_project_training_samples response: " + str(r.status_code))
+    return json.loads(r.text)
 
 
 def get_training_samples_from_selection(
     backend_url, project_id, selectionId, start, size
 ):
     """Return a sample inputs and gdt array ready to be processed"""
-    try:
-        r = requests.request(
-            "GET",
-            backend_url
-            + "projects/"
-            + add_dp_id(project_id)
-            + "/trainingSamples?selectionId="
-            + selectionId
-            + "&start="
-            + str(start)
-            + "&size="
-            + str(size),
-        )
-        logging.info(
-            "get_training_samples_from_selection response: " + str(r.status_code)
-        )
-        return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
+    r = requests.request(
+        "GET",
+        url=project_url(backend_url, project_id)
+        + "/trainingSamples?selectionId="
+        + selectionId
+        + "&start="
+        + str(start)
+        + "&size="
+        + str(size),
+    )
+    logging.info("get_training_samples_from_selection response: " + str(r.status_code))
+    return json.loads(r.text)
 
 
 # Hash
@@ -494,14 +409,12 @@ def check_hash_exist(backend_url, project_id, hash_list):
     try:
         r = requests.request(
             "POST",
-            url=backend_url + "projects/" + add_dp_id(project_id) + "/check_hash",
+            url=project_url(backend_url, project_id) + "/check_hash",
             json=data,
         )
         if r.status_code != 200:
             raise ValueError("check_hash_exist : " + json.loads(r.text))
         return json.loads(r.text)
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
     except json.decoder.JSONDecodeError as e:
         raise ValueError("internal server error")
 
@@ -514,9 +427,7 @@ def post_results_hash(backend_url, project_id, modelId, results: dict):
     try:
         r = requests.request(
             "POST",
-            url=backend_url
-            + "projects/"
-            + add_dp_id(project_id)
+            url=project_url(backend_url, project_id)
             + "/models/"
             + modelId
             + "/resultsHash",
@@ -526,7 +437,5 @@ def post_results_hash(backend_url, project_id, modelId, results: dict):
         if r.status_code != 200:
             raise ValueError("post_model_results_dict : " + json.loads(r.text))
         return True
-    except requests.exceptions.RequestException as e:
-        raise SystemExit(e)
     except json.decoder.JSONDecodeError as e:
         raise ValueError("internal server error")

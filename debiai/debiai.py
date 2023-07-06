@@ -19,10 +19,19 @@ class Debiai:
     Each Debiai object represent a Debiai server instance
     """
 
-    backend_url = None
+    backend_url = ""
 
     def __init__(self, backend_url: str):
         self.backend_url = backend_url
+
+        # Check if the url is valid
+        if self.backend_url is None or self.backend_url == "":
+            raise ValueError("Backend url cannot be empty")
+
+        # Remove trailing slash
+        if self.backend_url[-1] == "/":
+            self.backend_url = self.backend_url[:-1]
+
         utils.check_back(backend_url)
 
     def get_projects(self) -> List[Debiai_project]:
