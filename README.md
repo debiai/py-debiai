@@ -50,7 +50,7 @@ import numpy as np
 DEBIAI_BACKEND_URL = "http://localhost:3000/"
 DEBIAI_PROJECT_NAME = "Hello DebiAI"
 
-# Initialisation
+# Initialization
 my_debiai = debiai.Debiai(DEBIAI_BACKEND_URL)
 
 # Creating a project
@@ -125,7 +125,7 @@ results_df = pd.DataFrame({
 
 debiai_model_2.add_results_df(results_df)
 
-# The model results are ready to be analysed with the Debiai dashboard
+# The model results are ready to be analyzed with the Debiai dashboard
 ```
 <img src="./images/quickstart_results.png">
 
