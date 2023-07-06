@@ -8,7 +8,7 @@
 
 The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
 
-## Documentation
+## Web documentation
 [DebiAI Python module](https://debiai.irt-systemx.fr/dataInsertion/pythonModule)
 
 ## Features :
@@ -20,11 +20,11 @@ The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-system
   - Selection made with the dashboard samples recovery
   - tf.dataset creation from the project selections (beta)
 
-## Requierements:
+## Requirements:
 * [A running DebiAI instance](https://debiai.irt-systemx.fr/debiai/gettingStarted/installation/)
 * Numpy
 * Pandas
-* Eventualy Tensorflow
+* Eventually Tensorflow
 
 ## Installation
 
@@ -51,7 +51,7 @@ import numpy as np
 DEBIAI_URL = "http://localhost:3000/"
 DEBIAI_PROJECT_NAME = "Hello DebiAI"
 
-# Initialisation
+# Initialization
 my_debiai = debiai.Debiai(DEBIAI_URL)
 
 # Creating a project
@@ -71,6 +71,9 @@ block_structure = [
         ]
     }
 ]
+
+# Each columns belongs to a category, but you can algo group with a optional "group" key
+# The columns with the same group will be grouped in the dashboard
 
 debiai_project.set_blockstructure(block_structure)
 
@@ -123,7 +126,7 @@ results_df = pd.DataFrame({
 
 debiai_model_2.add_results_df(results_df)
 
-# The model results are ready to be analysed with the Debiai dashboard
+# The model results are ready to be analyzed with the Debiai dashboard
 ```
 <img src="./images/quickstart_results.png">
 

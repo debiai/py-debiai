@@ -17,7 +17,7 @@ block_structure = [
         "name": "Image ID",
         "contexts": [
             {"name": "My context 1", "type": "text"},
-            {"name": "My context 2", "type": "number"},
+            {"name": "My context 2", "type": "number", "group": "My group 1"},
         ],
         "groundTruth": [{"name": "My groundtruth 1", "type": "number"}],
     }
