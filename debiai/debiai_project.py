@@ -191,6 +191,16 @@ class Debiai_project:
                                 + "'. Use : ['text', 'number', 'boolean']"
                             )
 
+                        if "group" in column:
+                            if not isinstance(column["group"], str):
+                                raise ValueError(
+                                    "The group of the column '"
+                                    + column["name"]
+                                    + "' in the block '"
+                                    + block["name"]
+                                    + "' must be a string"
+                                )
+
         # Set the block_structure
         utils.add_blocklevel(self.debiai_url, self.id, block_structure)
         self.block_structure = block_structure
@@ -235,6 +245,12 @@ class Debiai_project:
             if "default" in column:
                 newRes["default"] = column["default"]
                 # TODO check default type same as col type
+
+            if "group" in column:
+                if type(column["group"]) != str:
+                    raise ValueError("The group attribute must be a string")
+
+                newRes["group"] = column["group"]
 
             expResults.append(newRes)
 
