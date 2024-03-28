@@ -1,9 +1,12 @@
-from typing import List
+from typing import List, TYPE_CHECKING
 import numpy as np
 import pandas as pd
-import hashlib
 
 import utils as utils
+
+
+if TYPE_CHECKING:
+    from debiai_project import debiai_project
 
 
 class Debiai_model:
@@ -11,10 +14,20 @@ class Debiai_model:
     A Debiai project model
     """
 
-    def __init__(self, project: "Debiai_project", name: str, id: str):
+    def __init__(self, project: debiai_project, name: str, id: str):
         self.project = project
         self.name = name
         self.id = id
+
+    def expected_results_exists(self):
+        """
+        Check if the expected results are defined, raise an error if not
+        """
+        if self.project.expected_results is None:
+            raise ValueError(
+                "The project expected results need to be specified \
+before doing this operation"
+            )
 
     def add_results_dict(
         self, results: dict, expected_results_order: List[str] = None
@@ -28,12 +41,9 @@ class Debiai_model:
         # Update the block structure & expected results
         self.project.project_infos()
 
-        if self.project.expected_results is None:
-            raise ValueError(
-                "The project expected results need to be specified before adding results"
-            )
+        self.expected_results_exists()
 
-        if type(results) != dict:
+        if type(results) is not dict:
             raise ValueError("Results must be of type dict")
 
         if expected_results_order is not None:
@@ -86,13 +96,13 @@ class Debiai_model:
         """
         Add results from a dataFrame.
         """
-        # Add results with __add_results_pd sequentialy
+        # Add results with __add_results_pd sequentially
         p_bar = utils.progress_bar("Adding results", results.shape[0], self.name)
         results_added = 0
 
         chunk_size = 5000
         for start in range(0, results.shape[0], chunk_size):
-            results_subset = results.iloc[start : start + chunk_size]
+            results_subset = results.iloc[start : start + chunk_size]  # noqa
 
             self.__add_results_pd(results_subset, map_id=map_id)
 
@@ -102,11 +112,8 @@ class Debiai_model:
         return True
 
     def __add_results_pd(self, results: pd.DataFrame, map_id=None) -> bool:
-        """Add results to the model throught DataFrame"""
-        if self.project.expected_results is None:
-            raise ValueError(
-                "The project expected results need to be specified before adding results"
-            )
+        """Add results to the model from a pd dataframe"""
+        self.expected_results_exists()
 
         # Check if block names are in df columns.
         for block in self.project.block_structure:
@@ -131,10 +138,10 @@ class Debiai_model:
         #     ...
         # }
 
-        # Exctract results name
+        # Extract results name
         results_name = []
-        for resu in self.project.expected_results:
-            results_name.append(resu["name"])
+        for result in self.project.expected_results:
+            results_name.append(result["name"])
 
         # Transform DataFrame into dic recursively
         dic_res = self.__pd_to_dict_recur(results, 0, results_name)
@@ -147,7 +154,7 @@ class Debiai_model:
 
         if level == len(self.project.block_structure) - 1:
             # Sample level
-            # Exctract results
+            # Extract results
 
             df_results_dict = df.to_dict("records")
 
@@ -226,7 +233,8 @@ class Debiai_model:
         """
         if self.project.expected_results is None:
             raise ValueError(
-                "The project expected results need to be specified before adding results"
+                "The project expected results need to be \
+specified before adding results"
             )
 
         # Get wrong hash
@@ -249,14 +257,14 @@ class Debiai_model:
                     )
                 results[dic] = new_results
 
-        # Remove wrong hash from the dico and add them to false dic to return
+        # Remove wrong hash from the dict and add them to false dict to return
         wrong_values = {}
 
         for key in wrong_hash:
             wrong_values[key] = results.pop(key)
 
         # Push new results in backend
-        err = utils.post_results_hash(
+        utils.post_results_hash(
             self.project.debiai_url, self.project.id, self.id, results
         )
 

@@ -89,7 +89,7 @@ samples_df = pd.DataFrame({
 
 debiai_project.add_samples_pd(samples_df)
 
-# The project samples are ready to be analysed with the dashboard
+# The project samples are ready to be analyzed with the dashboard
 
 
 # ===== Adding the project model results =====
@@ -128,7 +128,7 @@ debiai_model_2.add_results_df(results_df)
 
 # The model results are ready to be analyzed with the Debiai dashboard
 ```
-<img src="./images/quickstart_results.png">
+<img src="./images/quick_start_results.png">
 
 ## Limitations
 - Nan or empty values are not supported at the moment.

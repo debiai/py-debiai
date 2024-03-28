@@ -14,7 +14,7 @@ import pandas as pd
 DEBIAI_URL = "http://localhost:3000/"
 DEBIAI_PROJECT_NAME = "Wine quality v0"
 
-# Initialisation
+# Initialization
 
 my_debiai = debiai.Debiai(DEBIAI_URL)
 
@@ -28,7 +28,8 @@ if debiai_project:
 debiai_project = my_debiai.create_project(DEBIAI_PROJECT_NAME)
 
 # Creating the project block structure
-# Based on the wine quality dataset : http://archive.ics.uci.edu/ml/datasets/Wine+Quality
+# Based on the wine quality dataset:
+# http://archive.ics.uci.edu/ml/datasets/Wine+Quality
 
 wine_block_structure = [
     {
@@ -129,7 +130,7 @@ debiai_project.add_samples(samples_np_2)
 # Add third patch of samples with a dataframe
 samples_df = pd.DataFrame(
     {
-        "region": ["Nord", "Nord"],
+        "region": ["North", "North"],
         "Average temperature": [22, 22],
         "region type": ["Cold", "Cold"],
         "winemaker": [1, 2],
@@ -146,7 +147,8 @@ samples_df = pd.DataFrame(
 
 debiai_project.add_samples_pd(samples_df)
 
-# The project samples should be available on the backend and ready to be analysed with the Debiai dashboard
+# The project samples should be available on the backend
+# and ready to be analyzed with the Debiai dashboard
 
 # ============= Model results =============
 
@@ -212,7 +214,7 @@ debiai_model_2.add_results_dict(results_dict, results_order)
 
 results_df = pd.DataFrame(
     {
-        "region": ["Nord", "Nord"],
+        "region": ["North", "North"],
         "winemaker": [1, 2],
         "wine test": ["d_0029", "d_0002"],
         "quality guess": [8.0, 8.0],
@@ -222,4 +224,5 @@ results_df = pd.DataFrame(
 
 debiai_model_3.add_results_df(results_df)
 
-# The model results should be available on the backend and ready to be analysed with the Debiai dashboard
+# The model results should be available on the backend and ready
+# to be analyzed with the Debiai dashboard

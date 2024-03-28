@@ -5,10 +5,10 @@
     Author : IRT-SystemX
     Contact : debiai@irt-systemx.fr
     GitHub : git@github.com:DebiAI/py-debiai.git
-    Licence : Apache 2.0
+    License : Apache 2.0
 """
 
-from typing import List
+from typing import List, Union
 
 import utils as utils
 from .debiai_project import Debiai_project
@@ -48,12 +48,12 @@ class Debiai:
 
         return projects
 
-    def get_project(self, project_id: str) -> Debiai_project or None:
+    def get_project(self, project_id: str) -> Union[Debiai_project, None]:
         """
         Return a project by name, returns none if the project doesn't exist
         """
         project = utils.get_project(self.debiai_url, project_id)
-        if project != None:
+        if project:
             return Debiai_project(project["name"], project_id, self.debiai_url)
         else:
             return None
