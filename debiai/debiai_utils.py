@@ -42,7 +42,7 @@ def tree_to_array(block_structure, sample_tree):
 def get_block_data(block_structure, level, block: object):
     """
     Used by tree_to_array, returns recursively a 2d array with
-    a block and his childrens data
+    a block and his children data
     """
     # Add the block ID
     block_line = np.array([block["name"]])
@@ -53,21 +53,23 @@ def get_block_data(block_structure, level, block: object):
             for i in range(len(block_structure[level][debiai_type])):
                 block_line = np.append(block_line, block[debiai_type][i])
 
-    # Load the childrens blocks data
+    # Load the children blocks data
     if "childrenInfoList" in block and len(block["childrenInfoList"]) > 0:
-        childs_data = np.array([])
+        child_data_list = np.array([])
         for child_block in block["childrenInfoList"]:
             child_data = get_block_data(block_structure, level + 1, child_block)
 
-            if childs_data.size == 0:
-                childs_data = np.array(child_data)
+            if child_data_list.size == 0:
+                child_data_list = np.array(child_data)
             else:
-                childs_data = np.vstack([childs_data, child_data])
+                child_data_list = np.vstack([child_data_list, child_data])
 
-        # Merge block data with childrens
-        block_line = np.repeat([block_line], repeats=np.shape(childs_data)[0], axis=0)
+        # Merge block data with children
+        block_line = np.repeat(
+            [block_line], repeats=np.shape(child_data_list)[0], axis=0
+        )
 
-        block_line = np.concatenate((block_line, childs_data), axis=1)
+        block_line = np.concatenate((block_line, child_data_list), axis=1)
         return block_line
     else:
         return [block_line]

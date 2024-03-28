@@ -1,7 +1,7 @@
 import hashlib
 import pandas as pd
 import numpy as np
-from typing import List
+from typing import List, Union
 
 # Models
 from .debiai_model import Debiai_model
@@ -135,15 +135,16 @@ class Debiai_project:
             ...
         ]
 
-        The last block will be considered the sample block, and will mark the end of the tree
-        At least one block is required
+        The last block will be considered the sample block,
+        and will mark the end of the tree.
 
+        At least one block is required
         """
 
-        # Check if blocklevel structure is already created
+        # Check if blockLevel structure is already created
         proj_info = self.project_infos()
         if proj_info["blockLevelInfo"] != []:
-            raise ValueError("Cannot set the blocklevel structure - already created")
+            raise ValueError("Cannot set the blockLevel structure - already created")
 
         # Check that there is at least one block
         if not len(block_structure):
@@ -247,7 +248,7 @@ class Debiai_project:
                 # TODO check default type same as col type
 
             if "group" in column:
-                if type(column["group"]) != str:
+                if type(column["group"]) is str:
                     raise ValueError("The group attribute must be a string")
 
                 newRes["group"] = column["group"]
@@ -301,24 +302,23 @@ class Debiai_project:
         return ret
 
     # Add samples
-
     def add_samples(self, samples: np.array) -> bool:
         """
-        Add samples to the curent project, based on his block structure.
-        Each one of the block structure elements need to be present in the samples numpy array, exept for the results one.
+        Add samples to the current project, based on his block structure.
+        The defined block structure elements have to be present in the numpy array
 
-        Exemple :
-        Simple block structure :
-                                =======block_1=======   ======block_2======   ========samples=========
-                                context_a, context_b,   context_c, input_d,   input_e, GDT_f, result_g
+        Example :
+        If the defined block structure is:
+            =======block_1=======   ======block_2======   ====samples===
+            context_a, context_b,   context_c, input_d,   input_e, GDT_f
 
-        The numpy array first row should containt the folowing labels in any order:
-                                block_1, context_a, context_b, block_2, context_c, input_d, samples, input_e, GDT_f
-        note that the result_g is not asked.
+        The numpy array first row should contain the following labels in any order:
+        block_1, context_a, context_b, block_2, context_c, input_d, samples, GDT_f
+
+        Note that the result_g is not asked.
 
         If one the the required labels are missing, the samples wont be uploaded.
-        Any labels that are not required will be ignored
-        The folowing rows, if the types are correct, will be added to the database.
+        Any labels that aren't required will be ignored
         """
 
         self.get_block_structure()  # Check that the block_structure has been set
@@ -326,7 +326,7 @@ class Debiai_project:
         # Check that the array is correct and create a column index map
         indexMap = check_np_array(self.block_structure, samples)
 
-        SAMPLE_CHUNK_SIZE = 5000  # Nuber of sample that will be added in one chunk
+        SAMPLE_CHUNK_SIZE = 5000  # Number of sample that will be added in one chunk
         SAMPLE_TO_UPLOAD = samples.shape[0] - 1
 
         p_bar = utils.progress_bar("Adding samples", SAMPLE_TO_UPLOAD)
@@ -334,7 +334,7 @@ class Debiai_project:
 
         while nb_sample_added < SAMPLE_TO_UPLOAD:
             np_to_add = samples[
-                nb_sample_added + 1 : nb_sample_added + 1 + SAMPLE_CHUNK_SIZE
+                nb_sample_added + 1 : nb_sample_added + 1 + SAMPLE_CHUNK_SIZE  # noqa
             ]
 
             dict_to_add = np_to_dict(self.block_structure, np_to_add, indexMap)
@@ -346,33 +346,36 @@ class Debiai_project:
 
         return True
 
-    def add_samples_pd(self, df: pd.DataFrame, get_hash=None) -> bool:
+    def add_samples_pd(self, df: pd.DataFrame) -> bool:
         """
-        Add samples to the curent project, based on his block structure.
-        Each one of the block structure elements need to be present in the samples dataframe
+        Add samples to the current project, based on its block structure.
+        The defined block structure elements have to be present in the samples dataframe
 
-        Exemple :
-        Simple block structure :
-                                =======block_1=======   ======block_2======   ========samples=========
-                                context_a, context_b,   context_c, input_d,   input_e, GDT_f, result_g
+        Example :
+        If the defined block structure is:
+            =======block_1=======   ======block_2======   ====samples===
+            context_a, context_b,   context_c, input_d,   input_e, GDT_f
 
-        The dataframe columns should containt the folowing labels in any order:
-                                block_1, context_a, context_b, block_2, context_c, input_d, samples, input_e, GDT_f
-        note that the result_g is not asked.
+        The dataframe columns should contain the following labels in any order:
+        block_1, context_a, context_b, block_2, context_c, input_d, samples, GDT_f
+
+        Note that the result_g is not asked.
 
         If one the the required labels are missing, the samples wont be uploaded.
         Any labels that aren't required will be ignored
         """
         self.get_block_structure()  # Check that the block_structure has been set
 
-        SAMPLE_CHUNK_SIZE = 5000  # Nuber of sample that will be added in one chunk
+        SAMPLE_CHUNK_SIZE = 5000  # Number of sample that will be added in one chunk
         SAMPLE_TO_UPLOAD = df.shape[0]
         p_bar = utils.progress_bar("Adding samples", SAMPLE_TO_UPLOAD)
 
         nb_sample_added = 0
 
         while nb_sample_added < SAMPLE_TO_UPLOAD:
-            df_to_add = df[nb_sample_added : nb_sample_added + SAMPLE_CHUNK_SIZE]
+            df_to_add = df[
+                nb_sample_added : nb_sample_added + SAMPLE_CHUNK_SIZE  # noqa
+            ]
             dict_to_add = df_to_dict_tree(df_to_add, self.block_structure)
 
             utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
@@ -382,7 +385,6 @@ class Debiai_project:
         return True
 
     # Models
-
     def get_models(self) -> List[Debiai_model]:
         self.project_infos()
         if self.models:
@@ -390,7 +392,7 @@ class Debiai_project:
         else:
             return []
 
-    def get_model(self, model_name: str) -> Debiai_model or None:
+    def get_model(self, model_name: str) -> Union[Debiai_model, None]:
         self.project_infos()
         for model in self.models:
             id = model["id"]
@@ -423,9 +425,8 @@ class Debiai_project:
         utils.delete_model(self.debiai_url, self.id, model.id)
 
     # Hash
-
     def check_hash(self, hash_list: list) -> list:
-        """Check list of hashs with backend"""
+        """Check list of hashes with backend"""
         res = utils.check_hash_exist(self.debiai_url, self.id, hash_list)
         return res
 
@@ -463,10 +464,9 @@ class Debiai_project:
         return df
 
     # Selections
-
     def get_selections(self) -> List[Debiai_selection]:
         """
-        Get from the backend the list of selections, convert it in objects and returns it
+        Get the list of selections of the project
         """
         selections_json = utils.get_selections(self.debiai_url, self.id)
 
@@ -484,7 +484,7 @@ class Debiai_project:
             )
         return selections
 
-    def get_selection(self, selection_name: str) -> Debiai_selection or None:
+    def get_selection(self, selection_name: str) -> Union[Debiai_selection, None]:
         selections = self.get_selections()
         for selection in selections:
             if selection.name == selection_name:
@@ -492,7 +492,6 @@ class Debiai_project:
         return None
 
     # Tags
-
     def get_tags(self) -> List[Debiai_tag]:
         """
         Get from the backend the list of tags, convert it in objects and returns it
@@ -507,7 +506,7 @@ class Debiai_project:
             )
         return tags
 
-    def get_tag(self, tag_name: str) -> Debiai_tag or None:
+    def get_tag(self, tag_name: str) -> Union[Debiai_tag, None]:
         """
         Get from the backend the list of tags,
         returns the tag with the given name or none
@@ -521,7 +520,6 @@ class Debiai_project:
         return None
 
     # Pull data
-
     def get_numpy(self) -> np.array:
         self.get_block_structure()  # Check that the block_structure has been set
 
@@ -552,98 +550,3 @@ class Debiai_project:
         df[cols] = df[cols].apply(pd.to_numeric, errors="ignore")
 
         return df
-
-    def get_tf_dataset(self) -> "tf.data.Dataset":
-        import tensorflow as tf
-
-        self.get_block_structure()  # Check that the block_structure has been set
-
-        excepted_inputs = []
-        excepted_gdt = []
-
-        for level in self.block_structure:
-            if "inputs" in level:
-                excepted_inputs += level["inputs"]
-            if "groundTruth" in level:
-                excepted_gdt += level["groundTruth"]
-
-        return tf.data.Dataset.from_generator(
-            self.__load_samples,
-            (tf.float32, tf.int32),
-            ((len(excepted_inputs),), (len(excepted_gdt),)),
-        )
-
-    def __load_samples(self):
-        PACH_SIZE = 1000  # Pull samples each PACH_SIZE samples
-
-        i = 0
-        while True:
-            # Pull a sample tree
-            sample_tree = utils.get_project_training_samples(
-                self.debiai_url, self.id, i, PACH_SIZE
-            )
-
-            # Extract inputs & gdt
-            inputs, gdt = debiai_utils.get_inputs_and_gdt_patch(
-                self.block_structure, sample_tree
-            )
-
-            if len(inputs) == 0:
-                break
-
-            # Yield each one of the samples to the dataset
-            for j in range(len(inputs)):
-                yield inputs[j], gdt[j]
-
-            # TODO : clean progress bar
-            i += PACH_SIZE
-
-    def get_tf_dataset_with_provided_inputs(
-        self,
-        input_function: "function",
-        output_types: tuple,
-        output_shapes: tuple,
-        classes: list,
-    ) -> "tf.data.Dataset":
-        import tensorflow as tf
-
-        self.get_block_structure()  # Check that the block_structure has been set
-
-        self.dataset_generator_input_function = input_function
-        self.dataset_generator_classes = classes
-
-        return tf.data.Dataset.from_generator(
-            self.__load_samples_with_provided_inputs,
-            output_types=output_types,
-            output_shapes=output_shapes,
-        )
-
-    def __load_samples_with_provided_inputs(self):
-        PACH_SIZE = 1000  # Pull samples each PACH_SIZE samples
-
-        # Only deal with 1 gdt TODO : deal with the case with more than 1 gdt
-
-        i = 0
-        while True:
-            # Pull a sample tree
-            sample_tree = utils.get_project_training_samples(
-                self.debiai_url, self.id, i, PACH_SIZE
-            )
-
-            # Extract samples & gdt
-            samples, gdt = debiai_utils.get_samples_and_gdt_patch(
-                self.block_structure, sample_tree
-            )
-
-            if len(samples) == 0:
-                break
-
-            # Yield each one of the samples to the dataset
-            for j in range(len(samples)):
-                inputs = self.dataset_generator_input_function(samples[j])
-                gdt_number = self.dataset_generator_classes.index(gdt[j][0])
-                yield inputs, [gdt_number]
-
-            i += PACH_SIZE
-
-            # TODO : create a clean progress bar

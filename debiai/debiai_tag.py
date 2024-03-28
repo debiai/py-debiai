@@ -1,7 +1,5 @@
-from typing import List
 import numpy as np
 import pandas as pd
-import hashlib
 
 import utils as utils
 import debiai_utils as debiai_utils
@@ -17,7 +15,7 @@ class Debiai_tag:
     def __init__(
         self, project: str, id: str, name: str, creation_date: int, update_date: int
     ):
-        # Only the overvew is loaded at init
+        # Only the overview is loaded at init
         self.project = project
         self.id = id
         self.name = name

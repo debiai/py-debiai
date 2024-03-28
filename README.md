@@ -1,10 +1,13 @@
 # DebiAI Python module
+[![Online documentation](https://img.shields.io/static/v1?label=&message=Online documentation&color=0077de)](https://debiai.irt-systemx.fr/dataInsertion/pythonModule/quickStart.html)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![PyPI](https://badge.fury.io/py/debiai.svg)](https://badge.fury.io/py/debiai)
 ![Build](https://github.com/debiai/py-debiai/actions/workflows/python-publish.yml/badge.svg)
 ![Test](https://github.com/debiai/py-debiai/actions/workflows/python-test.yml/badge.svg)
 [![Downloads](https://static.pepy.tech/badge/debiai)](https://pepy.tech/project/debiai)
-![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Code style: flake8](https://img.shields.io/badge/code%20style-flake8-1c4a6c.svg)](https://flake8.pycqa.org/en/latest/)
 
 The DebiAI Python module is an interface with [DebiAI](https://debiai.irt-systemx.fr), you can use directly it in your Python project workflow to provide DebiAI with data.
 
@@ -89,7 +92,7 @@ samples_df = pd.DataFrame({
 
 debiai_project.add_samples_pd(samples_df)
 
-# The project samples are ready to be analysed with the dashboard
+# The project samples are ready to be analyzed with the dashboard
 
 
 # ===== Adding the project model results =====
@@ -128,7 +131,7 @@ debiai_model_2.add_results_df(results_df)
 
 # The model results are ready to be analyzed with the Debiai dashboard
 ```
-<img src="./images/quickstart_results.png">
+<img src="./images/quick_start_results.png">
 
 ## Limitations
 - Nan or empty values are not supported at the moment.

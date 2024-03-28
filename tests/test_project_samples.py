@@ -101,7 +101,7 @@ def test_samples_multi_levels():
             ],
             "groundTruth": [{"name": "GDT", "type": "number"}],
         },
-        {"name": "Obst ID"},
+        {"name": "Obstacle ID"},
     ]
 
     if debiai_instance.get_project("test Multi Levels") is not None:
@@ -112,7 +112,7 @@ def test_samples_multi_levels():
 
     samples = np.array(
         [
-            ["Dataset ID", "Image ID", "Context", "GDT", "Obst ID"],
+            ["Dataset ID", "Image ID", "Context", "GDT", "Obstacle ID"],
             ["A", "image-1", "D", 1, 3000],
             ["A", "image-2", "E", 3, 2000],
             ["A", "image-2", "F", 2, 1000],

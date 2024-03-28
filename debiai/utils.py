@@ -17,7 +17,6 @@ logging.basicConfig(filename="debiai.log", filemode="w", level=logging.INFO)
 PYTHON_DATA_PROVIDER_ID = "Python module Data Provider"
 
 CONNECTION_ERROR_MESSAGE = "Unable to connect to the DebiAI backend at the url : "
-APPLICATION_ERROR_MESSAGE = "Something went wrong the DebiAI, is your module version the same as the application ?"
 
 
 # Progress bar
@@ -165,7 +164,7 @@ def post_expected_results(debiai_url, id, expected_results):
 
 def add_blocklevel(debiai_url, id, blocklevel):
     """
-    Add blocklevel to a project block strucure
+    Add blocklevel to a project block structure
     Not used very much, should be removed
     TODO - Check if blocklevel already exists
     """
@@ -249,8 +248,8 @@ def post_model_results_dict(
             raise ValueError("post_model_results_dict : " + json.loads(r.text))
         return True
 
-    except json.decoder.JSONDecodeError as e:
-        raise ValueError("internal server error")
+    except json.decoder.JSONDecodeError:
+        raise ValueError("The server returned an unexpected response")
 
 
 def delete_model(debiai_url, project_id, model_id):
@@ -341,7 +340,7 @@ def post_add_tree(debiai_url, project_id, tree):
     if r.status_code == 201:
         print("No block added")
     elif r.status_code != 200:
-        raise ValueError("Internal server error while adding the datatree")
+        raise ValueError("Internal server error while adding the data tree")
     return True
 
 
@@ -415,8 +414,8 @@ def check_hash_exist(debiai_url, project_id, hash_list):
         if r.status_code != 200:
             raise ValueError("check_hash_exist : " + json.loads(r.text))
         return json.loads(r.text)
-    except json.decoder.JSONDecodeError as e:
-        raise ValueError("internal server error")
+    except json.decoder.JSONDecodeError:
+        raise ValueError("The server returned an unexpected response")
 
 
 def post_results_hash(debiai_url, project_id, modelId, results: dict):
@@ -437,5 +436,5 @@ def post_results_hash(debiai_url, project_id, modelId, results: dict):
         if r.status_code != 200:
             raise ValueError("post_model_results_dict : " + json.loads(r.text))
         return True
-    except json.decoder.JSONDecodeError as e:
-        raise ValueError("internal server error")
+    except json.decoder.JSONDecodeError:
+        raise ValueError("The server returned an unexpected response")

@@ -28,17 +28,17 @@ def test_project_creation():
     assert len(debiai_instance.get_projects()) == nb_projects + 1
 
     # Test few edge cases
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as execution_info:
         debiai_instance.create_project(None)
-    assert "cannot be empty" in str(excinfo.value)
+    assert "cannot be empty" in str(execution_info.value)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as execution_info:
         debiai_instance.create_project("")
-    assert "cannot be empty" in str(excinfo.value)
+    assert "cannot be empty" in str(execution_info.value)
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as execution_info:
         debiai_instance.create_project(PROJECT_NAME)
-    assert "already exist" in str(excinfo.value)
+    assert "already exist" in str(execution_info.value)
 
     # Get project by name
     project = debiai_instance.get_project(PROJECT_NAME)

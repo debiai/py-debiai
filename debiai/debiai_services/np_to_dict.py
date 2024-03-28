@@ -44,7 +44,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
 
 
 def check_np_array(block_structure: list, samples: np.array):
-    indexMap = {}  #  map of the user structure position and there index in the samples
+    indexMap = {}  # Map of the user structure position and there index in the samples
 
     # Check array compliance
     for block in block_structure:
