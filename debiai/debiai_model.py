@@ -1,12 +1,8 @@
-from typing import List, TYPE_CHECKING
+from typing import List
 import numpy as np
 import pandas as pd
 
 import utils as utils
-
-
-if TYPE_CHECKING:
-    from debiai_project import debiai_project
 
 
 class Debiai_model:
@@ -14,7 +10,7 @@ class Debiai_model:
     A Debiai project model
     """
 
-    def __init__(self, project: debiai_project, name: str, id: str):
+    def __init__(self, project, name: str, id: str):
         self.project = project
         self.name = name
         self.id = id
