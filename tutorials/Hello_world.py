@@ -1,3 +1,5 @@
+"""Hello World example with the DebiAI library."""
+
 from debiai import debiai
 import numpy as np
 import pandas as pd

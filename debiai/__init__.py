@@ -1,3 +1,5 @@
+"""__init__.py file for the debiai package."""
+
 # For relative imports to work in Python 3.6
 import os
 import sys

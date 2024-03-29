@@ -1,5 +1,5 @@
 """
-DebiAI python module configuration
+DebiAI Python module test configuration
 """
 
 import os
@@ -7,7 +7,7 @@ from typing import Optional
 
 
 class DebiaiConfig:
-    """Global configuration object for Debiai"""
+    """Global configuration object for Debiai tests."""
 
     def __init__(
         self,

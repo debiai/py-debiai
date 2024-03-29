@@ -1,3 +1,5 @@
+"""DebiAI model class."""
+
 from typing import List
 import numpy as np
 import pandas as pd
@@ -6,19 +8,16 @@ import utils as utils
 
 
 class Debiai_model:
-    """
-    A Debiai project model
-    """
+    """A Debiai project model."""
 
     def __init__(self, project, name: str, id: str):
+        """Create a Debiai model object."""
         self.project = project
         self.name = name
         self.id = id
 
     def expected_results_exists(self):
-        """
-        Check if the expected results are defined, raise an error if not
-        """
+        """Check if the expected results are defined, raise an error if not."""
         if self.project.expected_results is None:
             raise ValueError(
                 "The project expected results need to be specified \
@@ -30,12 +29,13 @@ before doing this operation"
     ) -> bool:
         """
         Add a result to the model from a dict.
+
         The tree allow the user to specify to what sample he created the result
         Each one of the block results structure elements need to be present at
         the end of the tree and in the expected_results_order array.
         """
         # Update the block structure & expected results
-        self.project.project_infos()
+        self.project._project_infos()
 
         self.expected_results_exists()
 
@@ -91,6 +91,10 @@ before doing this operation"
     def add_results_df(self, results: pd.DataFrame, map_id=None) -> bool:
         """
         Add results from a dataFrame.
+
+        The dataFrame must have the same structure as the expected results.
+        The map_id parameter is used to specify the column name that will be
+        used as the sample id.
         """
         # Add results with __add_results_pd sequentially
         p_bar = utils.progress_bar("Adding results", results.shape[0], self.name)
@@ -108,7 +112,7 @@ before doing this operation"
         return True
 
     def __add_results_pd(self, results: pd.DataFrame, map_id=None) -> bool:
-        """Add results to the model from a pd dataframe"""
+        """Add results to the model from a pd dataframe."""
         self.expected_results_exists()
 
         # Check if block names are in df columns.
@@ -179,7 +183,8 @@ before doing this operation"
     def add_results_np(self, results: np.array) -> bool:
         """
         Add a result to the model from a np array.
-        simply convert it into a df and use the already coded df import function
+
+        The np array must have the same structure as the expected results.
         """
         col = results[0]
         df = pd.DataFrame(data=results[1:], columns=col)
@@ -194,9 +199,7 @@ before doing this operation"
         expected_results_order: List[str],
         path: str,
     ):
-        """
-        Check recursively if a result dict is coherent with the block_structure
-        """
+        """Check recursively if a result dict is coherent with the block_structure."""
 
         if level == sampleIndex:
             #  Sample level : the results : they need to be verified
@@ -224,9 +227,7 @@ before doing this operation"
     def add_results_hash(
         self, results: dict, expected_results_order: List[str] = []
     ) -> dict:
-        """
-        Add results from a dict oh hash:results
-        """
+        """Add results from a dict oh hash:results."""
         if self.project.expected_results is None:
             raise ValueError(
                 "The project expected results need to be \

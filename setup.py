@@ -1,3 +1,9 @@
+"""
+Setup file for the DebiAI Python module.
+
+License: Apache 2.0
+"""
+
 import setuptools
 
 setuptools.setup(

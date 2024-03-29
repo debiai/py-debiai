@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from debiai.debiai import Debiai
-from debiai.config import get_config
+from tests.config import get_config
 
 config = get_config()
 debiai_instance = Debiai(config.debiai_app_url)
@@ -53,7 +53,12 @@ def test_samples_df():
     )
     assert project.add_samples_pd(samples_df)
 
+    models = project.get_models()
+    assert len(models) == 0
     model_1 = project.create_model("Model 1")
+    models = project.get_models()
+    assert len(models) == 1
+    assert models[0].name == "Model 1"
     results_df = pd.DataFrame(
         {
             "Image ID": ["image-1", "image-2", "image-3"],

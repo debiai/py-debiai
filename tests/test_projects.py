@@ -1,7 +1,7 @@
 import pytest
 from debiai.debiai import Debiai
 from debiai.debiai_project import Debiai_project
-from debiai.config import get_config
+from tests.config import get_config
 
 config = get_config()
 debiai_instance = Debiai(config.debiai_app_url)

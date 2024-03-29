@@ -1,3 +1,5 @@
+"""Debiai selection class."""
+
 import numpy as np
 import pandas as pd
 
@@ -8,10 +10,7 @@ DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
 class Debiai_selection:
-    """
-    A Debiai data selection : a list of sample id
-    It can belongs to a request
-    """
+    """A Debiai data selection is a list of sample id."""
 
     def __init__(
         self,
@@ -22,6 +21,7 @@ class Debiai_selection:
         nbSamples: str,
         requestId: str,
     ):
+        """Create a Debiai selection object."""
         self.project = project
         self.name = name
         self.id = id
@@ -29,7 +29,8 @@ class Debiai_selection:
         self.nbSamples = nbSamples
         self.requestId = requestId
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the selection."""
         return (
             "DEBIAI selection : '" + str(self.name) + "'\n"
             "creation date : '" + utils.timestamp_to_date(self.creationDate) + "'\n"
@@ -37,12 +38,13 @@ class Debiai_selection:
         )
 
     def get_numpy(self) -> np.array:
+        """Get the selected samples as a numpy array."""
         # Pulls all the selection data
         sampleTree = utils.get_samples_from_selection(
             self.project.debiai_url, self.project.id, self.id
         )
 
-        block_structure = self.project.project_infos()["blockLevelInfo"]
+        block_structure = self.project._project_infos()["blockLevelInfo"]
 
         """
             tree structure :
@@ -74,12 +76,11 @@ class Debiai_selection:
                     for column in block[debiai_type]:
                         columns = np.append(columns, column["name"])
 
-        data = debiai_utils.tree_to_array(block_structure, sampleTree)
+        data = debiai_utils._tree_to_array(block_structure, sampleTree)
         return np.vstack([columns, data])
 
     def get_dataframe(self) -> pd.DataFrame:
-        # Pull the selected samples from the backend
-        # returns a pd.DataFrame
+        """Get the selected samples as a pandas DataFrame."""
         numpy = self.get_numpy()
         col = numpy[0]
         df = pd.DataFrame(data=numpy[1:], columns=col)

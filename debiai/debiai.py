@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """
-    DebiAI module for an easy data manipulation with the DebiAI app.
+DebiAI module for an easy data manipulation with the DebiAI app.
 
-    Author : IRT-SystemX
-    Contact : debiai@irt-systemx.fr
-    GitHub : git@github.com:DebiAI/py-debiai.git
-    License : Apache 2.0
+Author : IRT-SystemX
+Contact : debiai@irt-systemx.fr
+GitHub : git@github.com:DebiAI/py-debiai.git
+License : Apache 2.0
 """
 
 from typing import List, Union
@@ -15,18 +14,26 @@ from .debiai_project import Debiai_project
 
 
 class Debiai:
-    """
-    Each Debiai object represent a Debiai server instance
-    """
+    """To interact with the Debiai."""
 
     debiai_url = ""
 
     def __init__(self, debiai_url: str):
+        """
+        Initialize the Debiai object.
+
+        Parameters:
+        - debiai_url (str): The URL of the Debiai backend.
+        """
+
         self.debiai_url = debiai_url
 
         # Check if the url is valid
         if self.debiai_url is None or self.debiai_url == "":
-            raise ValueError("Backend url cannot be empty")
+            raise ValueError("DebiAI URL cannot be empty")
+
+        if type(self.debiai_url) is not str:
+            raise ValueError("DebiAI URL is not valid")
 
         # Remove trailing slash
         if self.debiai_url[-1] == "/":
@@ -35,9 +42,8 @@ class Debiai:
         utils.check_back(debiai_url)
 
     def get_projects(self) -> List[Debiai_project]:
-        """
-        Return the server existing projects
-        """
+        """Return the server existing projects."""
+
         projects = []
         projects_list = utils.get_projects(self.debiai_url)
 
@@ -49,9 +55,8 @@ class Debiai:
         return projects
 
     def get_project(self, project_id: str) -> Union[Debiai_project, None]:
-        """
-        Return a project by name, returns none if the project doesn't exist
-        """
+        """Return a project by name, returns none if the project doesn't exist."""
+
         project = utils.get_project(self.debiai_url, project_id)
         if project:
             return Debiai_project(project["name"], project_id, self.debiai_url)
@@ -59,10 +64,8 @@ class Debiai:
             return None
 
     def create_project(self, project_name: str) -> Debiai_project:
-        """
-        Create a new project from a name
-        return the created Debiai_project object
-        """
+        """Create a new DebiAI project."""
+
         if project_name is None or project_name == "":
             raise ValueError("Project name cannot be empty")
 
@@ -71,22 +74,19 @@ class Debiai:
         return Debiai_project(project_name, project_id, self.debiai_url)
 
     def delete_project(self, project: Debiai_project) -> bool:
-        """
-        Remove a project from the server
-        """
+        """Remove a project from DebiAI."""
+
         if project is None:
             raise ValueError("Project cannot be None")
         if type(project) is not Debiai_project:
             raise ValueError(
-                "Parameter must be a Debiai_project object, not a "
-                + type(project).__name__
-                + ", use delete_project_byId instead"
+                f"Parameter must be a Debiai_project object, \
+not a {type(project).__name__}, use delete_project_byId instead"
             )
 
         return utils.delete_project(self.debiai_url, project.id)
 
     def delete_project_byId(self, projectId: str) -> bool:
-        """
-        Remove a project from the server
-        """
+        """Remove a project from DebiAI."""
+
         return utils.delete_project(self.debiai_url, projectId)

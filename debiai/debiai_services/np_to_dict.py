@@ -1,9 +1,11 @@
+"""This module contains functions to manipulate and verify numpy arrays."""
+
 import numpy as np
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
-def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
+def _np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
     ret = []
 
     for sample in samples:
@@ -43,7 +45,7 @@ def np_to_dict(block_structure: list, samples: np.array, indexMap: dict):
     return ret
 
 
-def check_np_array(block_structure: list, samples: np.array):
+def _check_np_array(block_structure: list, samples: np.array):
     indexMap = {}  # Map of the user structure position and there index in the samples
 
     # Check array compliance

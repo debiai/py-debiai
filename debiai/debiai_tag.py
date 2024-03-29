@@ -1,3 +1,5 @@
+"""Debiai tag class."""
+
 import numpy as np
 import pandas as pd
 
@@ -8,13 +10,12 @@ DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
 class Debiai_tag:
-    """
-    A Debiai tag : a list of sample id and a tag value
-    """
+    """A Debiai tag : a list of sample id and a tag value."""
 
     def __init__(
         self, project: str, id: str, name: str, creation_date: int, update_date: int
     ):
+        """Create a new Debiai tag."""
         # Only the overview is loaded at init
         self.project = project
         self.id = id
@@ -24,6 +25,7 @@ class Debiai_tag:
         self.tags = None
 
     def load_tags(self):
+        """Load the tag values from the backend."""
         if self.tags is None:
             # TODO: check if version has changed before loading
             tag = utils.get_tag(self.project.debiai_url, self.project.id, self.id)
@@ -35,7 +37,7 @@ class Debiai_tag:
 
     @property
     def tag_number(self) -> dict:
-        # Return the number each tag is present in the tag list
+        """Return the number each tag is present in the tag list."""
         self.load_tags()
 
         values = {}
@@ -48,7 +50,8 @@ class Debiai_tag:
 
         return values
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the tag."""
         return (
             "DEBIAI tag : '" + str(self.name) + "'\n"
             "creation date : '" + utils.timestamp_to_date(self.creation_date) + "'\n"
@@ -56,12 +59,13 @@ class Debiai_tag:
         )
 
     def get_numpy(self, tag_value: int) -> np.array:
+        """Get the tagged samples as a numpy array."""
         # Pull all samples with the given tag value
         sampleTree = utils.get_samples_from_tag(
             self.project.debiai_url, self.project.id, self.id, tag_value
         )
 
-        block_structure = self.project.project_infos()["blockLevelInfo"]
+        block_structure = self.project._project_infos()["blockLevelInfo"]
 
         # TODO : regroup in one service
 
@@ -74,12 +78,13 @@ class Debiai_tag:
                     for column in block[debiai_type]:
                         columns = np.append(columns, column["name"])
 
-        data = debiai_utils.tree_to_array(block_structure, sampleTree)
+        data = debiai_utils._tree_to_array(block_structure, sampleTree)
         if len(data) == 0:
             return np.array([columns])
         return np.vstack([columns, data])
 
     def get_dataframe(self, tag_value: int) -> pd.DataFrame:
+        """Get the tagged samples as a pandas DataFrame."""
         # Pull the tagged samples from the backend
         # returns a pd.DataFrame
         numpy = self.get_numpy(tag_value)

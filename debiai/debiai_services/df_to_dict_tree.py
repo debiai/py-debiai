@@ -1,9 +1,11 @@
+"""This module contains the function to convert a dataframe to a tree dict."""
+
 import pandas as pd
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
-def df_to_dict_tree(df: pd.DataFrame, block_structure: list):
+def _df_to_dict_tree(df: pd.DataFrame, block_structure: list):
     col_index_map = {}
     data = df.to_dict("split")
     column = data["columns"]

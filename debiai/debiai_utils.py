@@ -1,15 +1,31 @@
-import numpy as np
+"""
+Debiai Utils Module.
 
+Provides common functions used across various classes.
 """
-    debiai_utils : common function for all debiai classes
-"""
+
+import numpy as np
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
-def tree_to_array(block_structure, sample_tree):
+def _tree_to_array(block_structure, sample_tree):
     """
-    Convert a sample tree to a 2d array
+    Convert a hierarchical sample tree into a flattened 2D numpy array.
+
+    Each row in the array represents a block from the sample tree, concatenated with
+    its children's data recursively. This function aggregates data across multiple
+    levels of the sample tree, making it suitable for analysis or model training.
+
+    Parameters:
+    - block_structure (list): Structure defining how blocks and their attributes are
+    organized within the sample tree.
+    - sample_tree (list): Hierarchical sample tree, where each element represents a
+    block with potential children blocks.
+
+    Returns:
+    - numpy.ndarray: 2D numpy array with concatenated data from a block and its
+    children within the sample tree.
     """
 
     if len(sample_tree) == 0:
@@ -20,16 +36,16 @@ def tree_to_array(block_structure, sample_tree):
     i = 0
 
     ret = []
-    ret_tmp = get_block_data(block_structure, 0, sample_tree[0])
+    ret_tmp = _get_block_data(block_structure, 0, sample_tree[0])
     for block in sample_tree[1:]:
         i = i + 1
         if i == PATCH_SIZE:
             ret.append(ret_tmp)
-            ret_tmp = get_block_data(block_structure, 0, block)
+            ret_tmp = _get_block_data(block_structure, 0, block)
             i = 0
             continue
 
-        ret_tmp = np.vstack([ret_tmp, get_block_data(block_structure, 0, block)])
+        ret_tmp = np.vstack([ret_tmp, _get_block_data(block_structure, 0, block)])
 
     ret.append(ret_tmp)
     ret_final = ret[0]
@@ -39,11 +55,24 @@ def tree_to_array(block_structure, sample_tree):
     return ret_final
 
 
-def get_block_data(block_structure, level, block: object):
+def _get_block_data(block_structure, level, block: object):
     """
-    Used by tree_to_array, returns recursively a 2d array with
-    a block and his children data
+    Recursively retrieves data from a given block and its children.
+
+    This function supports the `tree_to_array` function by processing individual blocks
+    and their hierarchical structure.
+
+    Parameters:
+    - block_structure (list): The structure defining block attributes
+    across different levels.
+    - level (int): The current level in the block structure being processed.
+    - block (dict): The block from which to extract data, which may
+    include child blocks.
+
+    Returns:
+    - numpy.ndarray: A 2D numpy array containing data from the block and its children.
     """
+
     # Add the block ID
     block_line = np.array([block["name"]])
 
@@ -57,7 +86,7 @@ def get_block_data(block_structure, level, block: object):
     if "childrenInfoList" in block and len(block["childrenInfoList"]) > 0:
         child_data_list = np.array([])
         for child_block in block["childrenInfoList"]:
-            child_data = get_block_data(block_structure, level + 1, child_block)
+            child_data = _get_block_data(block_structure, level + 1, child_block)
 
             if child_data_list.size == 0:
                 child_data_list = np.array(child_data)
@@ -73,75 +102,3 @@ def get_block_data(block_structure, level, block: object):
         return block_line
     else:
         return [block_line]
-
-
-def get_inputs_and_gdt_patch(block_structure, sample_tree):
-    """
-    return from a sample tree a list of inputs and gdt
-    used to create tf datasets
-    """
-    data = tree_to_array(block_structure, sample_tree)
-
-    # Filter the array to keep the inputs & gdt
-    inputs = []
-    gdt = []
-
-    # TODO can be done faster and cleaner
-    for d in data:
-        tmp_inputs = []
-        tmp_gdt = []
-        ind = -1
-        for block in block_structure:
-            ind += 1
-            for debiai_type in DEBIAI_TYPES:
-                if debiai_type in block:
-                    for column in block[debiai_type]:
-                        ind += 1
-                        if debiai_type == "inputs":
-                            tmp_inputs.append(float(d[ind]))
-                        elif debiai_type == "groundTruth":
-                            tmp_gdt.append(float(d[ind]))
-        inputs.append(tmp_inputs)
-        gdt.append(tmp_gdt)
-
-    return inputs, gdt
-
-
-def get_samples_and_gdt_patch(block_structure, sample_tree):
-    """
-    return from a sample tree a list of samples and gdt
-    used to create tf datasets
-    """
-
-    data = tree_to_array(block_structure, sample_tree)
-
-    # Filter the array to keep the samples & gdt
-    samples = []
-    gdt = []
-
-    # TODO can be done faster and cleaner
-    for d in data:
-        tmp_samples = {}
-        tmp_gdt = []
-        ind = -1
-        for block in block_structure:
-            ind += 1
-            tmp_samples[block["name"]] = d[ind]
-            for debiai_type in DEBIAI_TYPES:
-                if debiai_type in block:
-                    for column in block[debiai_type]:
-                        ind += 1
-                        if column["type"] == "text":
-                            tmp_samples[column["name"]] = d[ind]
-                        else:
-                            tmp_samples[column["name"]] = float(d[ind])
-
-                        if debiai_type == "groundTruth":
-                            if column["type"] == "text":
-                                tmp_gdt.append(d[ind])
-                            else:
-                                tmp_gdt.append(float(d[ind]))
-        samples.append(tmp_samples)
-        gdt.append(tmp_gdt)
-
-    return samples, gdt

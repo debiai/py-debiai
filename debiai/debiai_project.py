@@ -1,4 +1,5 @@
-import hashlib
+"""DebiAI project class."""
+
 import pandas as pd
 import numpy as np
 from typing import List, Union
@@ -11,18 +12,25 @@ from .debiai_tag import Debiai_tag
 # Services
 import utils as utils
 import debiai_utils as debiai_utils
-from .debiai_services.df_to_dict_tree import df_to_dict_tree
-from .debiai_services.np_to_dict import check_np_array, np_to_dict
+from .debiai_services.df_to_dict_tree import _df_to_dict_tree
+from .debiai_services.np_to_dict import _check_np_array, _np_to_dict
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
 class Debiai_project:
-    """
-    A Debiai project
-    """
+    """A Debiai project."""
 
     def __init__(self, name: str, id: str, debiai_url: str):
+        """
+        Initialize the Debiai project object.
+
+        Parameters:
+        - name (str): The name of the project.
+        - id (str): The id of the project.
+        - debiai_url (str): The URL of the Debiai backend.
+        """
+
         self.name = name
         self.id = id
         self.debiai_url = debiai_url
@@ -34,11 +42,12 @@ class Debiai_project:
         self.creation_date = None
         self.update_date = None
 
-        self.project_infos()  # Load block_structure & expected_results
+        self._project_infos()  # Load block_structure & expected_results
 
         # TODO : load creation date, datasets, etc...
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return the string representation of the project."""
         return (
             "DEBIAI project :  "
             + str(self.name)
@@ -51,7 +60,8 @@ class Debiai_project:
             + "\n"
         )
 
-    def project_infos(self):
+    def _project_infos(self) -> dict:
+        """Get the project infos from the backend and set the attributes."""
         project_info = utils.get_project(self.debiai_url, self.id)
         if "blockLevelInfo" in project_info:
             self.block_structure = project_info["blockLevelInfo"]
@@ -66,14 +76,16 @@ class Debiai_project:
         return project_info
 
     # Blocks structure
-    def block_structure_defined(self):
-        self.project_infos()
+    def block_structure_defined(self) -> Union[List[dict], bool]:
+        """Return the block structure if it is defined, False otherwise."""
+        self._project_infos()
         if self.block_structure:
             return self.block_structure
         else:
             return False
 
-    def get_block_structure(self):
+    def get_block_structure(self) -> List[dict]:
+        """Return the block structure of the project."""
         bs = self.block_structure_defined()
         if bs:
             return bs
@@ -86,12 +98,12 @@ class Debiai_project:
 
     def set_blockstructure(self, block_structure: List[dict]) -> bool:
         """
-        Add a block structure to the project
+        Add a block structure to the project.
+
         This step is required before uploading data
         Throw error if the block structure is already created
 
         block_structure syntax:
-
         [
             {
                 "name": str
@@ -142,7 +154,7 @@ class Debiai_project:
         """
 
         # Check if blockLevel structure is already created
-        proj_info = self.project_infos()
+        proj_info = self._project_infos()
         if proj_info["blockLevelInfo"] != []:
             raise ValueError("Cannot set the blockLevel structure - already created")
 
@@ -207,14 +219,16 @@ class Debiai_project:
         self.block_structure = block_structure
 
     # Results structure
-    def expected_results_defined(self):
-        self.project_infos()
+    def expected_results_defined(self) -> Union[List[dict], bool]:
+        """Return the expected results if it is defined, False otherwise."""
+        self._project_infos()
         if self.expected_results:
             return self.expected_results
         else:
             return False
 
-    def get_expected_results(self):
+    def get_expected_results(self) -> List[dict]:
+        """Return the expected results of the project."""
         rs = self.expected_results_defined()
         if rs:
             return rs
@@ -226,29 +240,58 @@ class Debiai_project:
             )
 
     def set_expected_results(self, expected_results: List[dict]) -> List[dict]:
+        """
+        Add the expected results to the project.
+
+        This step is required before uploading model results
+        Throw error if the expected results are already created
+
+        expected_results syntax:
+        [
+            {
+                "name": str
+                "type": 'text', 'number', 'boolean',
+                "default"?: str, number
+                "group"?: str
+            },
+            ...
+        ]
+
+        At least one result is required
+        """
+
         if self.expected_results is not None:
             raise ValueError("The project expected results have been already set")
+
+        if type(expected_results) is not list:
+            raise ValueError("The expected results must be a list")
+
+        if len(expected_results) == 0:
+            raise ValueError("At least one result is required")
 
         expResults = []
 
         for column in expected_results:
+            if type(column) is not dict:
+                raise ValueError("Each column must be a dictionary")
+
+            # Verify that the column has the required attributes
             if "name" not in column:
                 raise ValueError("The attribute 'name' is required in each column")
+
             if "type" not in column:
                 raise ValueError("The attribute 'type' is required in each column")
 
+            # Verify that the type is correct
             col = [c for c in expResults if c["name"] == column["name"]]
             if len(col) > 0:
                 raise ValueError("Each result name need to be unique")
 
+            # Add the column to the expected results
             newRes = {"name": column["name"], "type": column["type"]}
 
-            if "default" in column:
-                newRes["default"] = column["default"]
-                # TODO check default type same as col type
-
             if "group" in column:
-                if type(column["group"]) is str:
+                if type(column["group"]) is not str:
                     raise ValueError("The group attribute must be a string")
 
                 newRes["group"] = column["group"]
@@ -258,53 +301,11 @@ class Debiai_project:
         utils.post_expected_results(self.debiai_url, self.id, expResults)
         self.expected_results = expResults
 
-    def add_expected_result(self, column: dict) -> List[dict]:
-        if self.expected_results is None:
-            raise ValueError("The project does not have an expected results to update")
-
-        if "name" not in column:
-            raise ValueError(
-                "The attribute 'name' is required in the new result column"
-            )
-        if "type" not in column:
-            raise ValueError(
-                "The attribute 'type' is required in the new result column"
-            )
-        if "default" not in column:
-            raise ValueError(
-                "The attribute 'default' is required in the new result column"
-            )
-
-        # TODO check default type same as col type
-
-        col = [c for c in self.expected_results if c["name"] == column["name"]]
-        if len(col) > 0:
-            raise ValueError("'" + column["name"] + "' is already expected as a result")
-
-        newRes = {
-            "name": column["name"],
-            "type": column["type"],
-            "default": column["default"],
-        }
-
-        ret = utils.post_add_expected_results(self.debiai_url, self.id, newRes)
-        self.expected_results = ret
-        return ret
-
-    def remove_expected_result(self, column: str) -> List[dict]:
-        if self.expected_results is None:
-            raise ValueError("The project does not have an expected results to update")
-
-        # TODO check default type same as col type
-
-        ret = utils.remove_expected_results(self.debiai_url, self.id, column)
-        self.expected_results = ret
-        return ret
-
     # Add samples
     def add_samples(self, samples: np.array) -> bool:
         """
         Add samples to the current project, based on his block structure.
+
         The defined block structure elements have to be present in the numpy array
 
         Example :
@@ -324,7 +325,7 @@ class Debiai_project:
         self.get_block_structure()  # Check that the block_structure has been set
 
         # Check that the array is correct and create a column index map
-        indexMap = check_np_array(self.block_structure, samples)
+        indexMap = _check_np_array(self.block_structure, samples)
 
         SAMPLE_CHUNK_SIZE = 5000  # Number of sample that will be added in one chunk
         SAMPLE_TO_UPLOAD = samples.shape[0] - 1
@@ -337,7 +338,7 @@ class Debiai_project:
                 nb_sample_added + 1 : nb_sample_added + 1 + SAMPLE_CHUNK_SIZE  # noqa
             ]
 
-            dict_to_add = np_to_dict(self.block_structure, np_to_add, indexMap)
+            dict_to_add = _np_to_dict(self.block_structure, np_to_add, indexMap)
 
             utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
 
@@ -349,6 +350,7 @@ class Debiai_project:
     def add_samples_pd(self, df: pd.DataFrame) -> bool:
         """
         Add samples to the current project, based on its block structure.
+
         The defined block structure elements have to be present in the samples dataframe
 
         Example :
@@ -376,7 +378,7 @@ class Debiai_project:
             df_to_add = df[
                 nb_sample_added : nb_sample_added + SAMPLE_CHUNK_SIZE  # noqa
             ]
-            dict_to_add = df_to_dict_tree(df_to_add, self.block_structure)
+            dict_to_add = _df_to_dict_tree(df_to_add, self.block_structure)
 
             utils.post_add_tree(self.debiai_url, self.id, dict_to_add)
             nb_sample_added += SAMPLE_CHUNK_SIZE
@@ -386,14 +388,33 @@ class Debiai_project:
 
     # Models
     def get_models(self) -> List[Debiai_model]:
-        self.project_infos()
-        if self.models:
-            return self.models
-        else:
+        """
+        Get the list of models of the project.
+
+        Returns:
+        - List[Debiai_model]: The list of models of the project
+        """
+        self._project_infos()
+        if self.models is None:
             return []
 
+        models = []
+        for model in self.models:
+            models.append(Debiai_model(self, model["id"], model["name"]))
+        return models
+
     def get_model(self, model_name: str) -> Union[Debiai_model, None]:
-        self.project_infos()
+        """
+        Get a model by name.
+
+        Parameters:
+        - model_name (str): The name of the model to get
+
+        Returns:
+        - Debiai_model: The model with the given name
+        - None: If the model does not exist
+        """
+        self._project_infos()
         for model in self.models:
             id = model["id"]
             name = model["name"]
@@ -401,19 +422,36 @@ class Debiai_project:
                 return Debiai_model(self, id, name)
         return None
 
-    def create_model(self, name: str, metadata: dict = {}) -> Debiai_model:
-        #  check parameters
+    def create_model(self, name: str) -> Debiai_model:
+        """
+        Create a new model in the project.
+
+        Parameters:
+        - name (str): The name of the model
+
+        Returns:
+        - Debiai_model: The created model
+        """
+        # Check parameters
         if not name:
             raise ValueError("Can't create the model: The model name is required")
 
         # Call the backend
-        if utils.post_model(self.debiai_url, self.id, name, metadata):
+        if utils.post_model(self.debiai_url, self.id, name, {}):
             return Debiai_model(self, name, name)
-        else:
-            return False
 
-    def delete_model(self, model_name: str) -> bool:
-        #  check parameters
+    def delete_model(self, model_name: Union[str, Debiai_model]):
+        """
+        Delete a model by name.
+
+        Parameters:
+        - model_name (str): The name of the model to delete
+        """
+        # Check parameters
+        if type(model_name) is Debiai_model:
+            model_name = model_name.name
+        if type(model_name) is not str:
+            raise ValueError("The model name must be a string")
         if not model_name:
             raise ValueError("Can't delete the model: The model name is required")
         # Find the model ID
@@ -424,50 +462,9 @@ class Debiai_project:
         # Call the backend
         utils.delete_model(self.debiai_url, self.id, model.id)
 
-    # Hash
-    def check_hash(self, hash_list: list) -> list:
-        """Check list of hashes with backend"""
-        res = utils.check_hash_exist(self.debiai_url, self.id, hash_list)
-        return res
-
-    def __get_hash_from_df(self, block_name: list, row, map_id: str):
-        """Subfunction creating a path from a row of df and hashing it"""
-        path = ""
-
-        for name in block_name:
-            if name == map_id:
-                path += str(row.name)
-            else:
-                path += str(row[name])
-            path += "/"
-
-        hash = hashlib.sha256(path.encode("utf-8")).hexdigest()
-
-        return hash
-
-    def create_hash(self, df: pd.DataFrame, map_id: str = None) -> pd.DataFrame:
-        """
-        Create a hash column into the df
-        """
-        # Get block names
-        block_name = []
-
-        for block in self.block_structure:
-            block_name.append(block["name"])
-
-        # Create path to hash for each row
-
-        df["hash"] = df.apply(
-            lambda row: self.__get_hash_from_df(block_name, row, map_id), axis=1
-        )
-
-        return df
-
     # Selections
     def get_selections(self) -> List[Debiai_selection]:
-        """
-        Get the list of selections of the project
-        """
+        """Get the list of selections of the project."""
         selections_json = utils.get_selections(self.debiai_url, self.id)
 
         selections = []
@@ -485,17 +482,47 @@ class Debiai_project:
         return selections
 
     def get_selection(self, selection_name: str) -> Union[Debiai_selection, None]:
+        """
+        Get a selection by name.
+
+        Parameters:
+        - selection_name (str): The name of the selection to get
+
+        Returns:
+        - Debiai_selection: The selection with the given name
+        - None: If the selection does not exist
+        """
         selections = self.get_selections()
         for selection in selections:
             if selection.name == selection_name:
                 return selection
         return None
 
+    def delete_selection(self, selection_name: Union[str, Debiai_selection]):
+        """
+        Delete a selection by name.
+
+        Parameters:
+        - selection_name (str): The name of the selection to delete
+        """
+        # Check parameters
+        if type(selection_name) is Debiai_selection:
+            selection_name = selection_name.name
+        if type(selection_name) is not str:
+            raise ValueError("The selection name must be a string")
+        if not selection_name:
+            raise ValueError("The selection name is required")
+        # Find the selection ID
+        selection = self.get_selection(selection_name)
+        if not selection:
+            raise ValueError("The selection '" + selection_name + "' does not exist")
+
+        # Call the backend
+        utils.delete_selection(self.debiai_url, self.id, selection.id)
+
     # Tags
     def get_tags(self) -> List[Debiai_tag]:
-        """
-        Get from the backend the list of tags, convert it in objects and returns it
-        """
+        """Get the list of tags of the project."""
         tags_json = utils.get_tags(self.debiai_url, self.id)
 
         # Convert each request into a debiai_selection object
@@ -507,10 +534,7 @@ class Debiai_project:
         return tags
 
     def get_tag(self, tag_name: str) -> Union[Debiai_tag, None]:
-        """
-        Get from the backend the list of tags,
-        returns the tag with the given name or none
-        """
+        """Get a tag by name."""
         tags = self.get_tags()
 
         for t in tags:
@@ -521,6 +545,8 @@ class Debiai_project:
 
     # Pull data
     def get_numpy(self) -> np.array:
+        """Get the project samples as a numpy array."""
+
         self.get_block_structure()  # Check that the block_structure has been set
 
         # Pulls all the data
@@ -535,10 +561,11 @@ class Debiai_project:
                     for column in block[debiai_type]:
                         columns = np.append(columns, column["name"])
 
-        data = debiai_utils.tree_to_array(self.block_structure, sample_tree)
+        data = debiai_utils._tree_to_array(self.block_structure, sample_tree)
         return np.vstack([columns, data])
 
     def get_dataframe(self) -> pd.DataFrame:
+        """Get the project samples as a pandas DataFrame."""
         # Pull the selected samples from the backend
         # returns a pd.DataFrame
         numpy = self.get_numpy()

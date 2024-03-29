@@ -1,7 +1,9 @@
-# -*- coding: utf-8 -*-
 """
-    Utils : request manager
+Utils for DebiAI.
+
+This module provides functions to interact with the DebiAI backend.
 """
+
 # IMPORT
 import sys
 import requests
@@ -21,9 +23,12 @@ CONNECTION_ERROR_MESSAGE = "Unable to connect to the DebiAI backend at the url :
 
 # Progress bar
 class progress_bar:
+    """Progress bar class."""
+
     BAR_SIZE = 40
 
     def __init__(self, name: str, size: int, para: str = ""):
+        """Initialize the progress bar."""
         self.name = name
         self.size = size
         self.para = para
@@ -32,6 +37,7 @@ class progress_bar:
         self.update(0)
 
     def update(self, current_progression: int):
+        """Update the progress bar."""
         if self.size == 0:
             sys.stdout.write(self.name + " : Progression bar size is 0")
             return
@@ -57,13 +63,13 @@ class progress_bar:
 
 # Dates
 def timestamp_to_date(timestamp):
-    """Convert timestamp to date"""
+    """Convert timestamp to date."""
     return str(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp / 1000)))
 
 
 # Connection
 def check_back(debiai_url):
-    """Check the connection with backend"""
+    """Check the connection with backend."""
     try:
         ret = requests.get(debiai_url + "version")
 
@@ -99,25 +105,27 @@ def check_back(debiai_url):
         )
 
 
-def projects_url(debiai_url):
+def projects_url(debiai_url) -> str:
+    """Return the projects url from the debiai url."""
     return debiai_url + "/data-providers/" + PYTHON_DATA_PROVIDER_ID + "/projects"
 
 
-def project_url(debiai_url, project_id):
+def project_url(debiai_url, project_id) -> str:
+    """Return the project url from the debiai url and the project id."""
     return projects_url(debiai_url) + "/" + project_id
 
 
 # Projects
-def get_projects(debiai_url):
-    """Return projects list as JSON"""
+def get_projects(debiai_url) -> List[dict]:
+    """Return projects list."""
     r = requests.request("GET", projects_url(debiai_url))
     logging.info("Get_projects response: " + str(r.status_code))
     logging.info(r.text)
     return json.loads(r.text)
 
 
-def get_project(debiai_url, id):
-    """Return project (JSON) from id"""
+def get_project(debiai_url, id) -> dict:
+    """Return project from id."""
     r = requests.request("GET", project_url(debiai_url, id))
     logging.info("Get_project response: " + str(r.status_code))
     logging.info(r.text)
@@ -126,8 +134,8 @@ def get_project(debiai_url, id):
     return json.loads(r.text)
 
 
-def post_project(debiai_url, name):
-    """Post new project and return project id"""
+def post_project(debiai_url, name) -> str:
+    """Post new project and return project id."""
     data = {"projectName": name, "blockLevelInfo": [{"name": "file"}]}
     r = requests.request("POST", url=debiai_url + "/projects", json=data)
     if r.status_code != 200:
@@ -136,8 +144,8 @@ def post_project(debiai_url, name):
     return info["id"]
 
 
-def delete_project(debiai_url, id):
-    """Delete project from id"""
+def delete_project(debiai_url, id) -> bool:
+    """Delete project from id."""
     try:
         r = requests.request("DELETE", url=project_url(debiai_url, id))
         if r.status_code != 200:
@@ -150,8 +158,8 @@ def delete_project(debiai_url, id):
 
 
 # Block structure
-def post_expected_results(debiai_url, id, expected_results):
-    """set the expected_results to a project"""
+def post_expected_results(debiai_url, id, expected_results) -> dict:
+    """Set the expected_results to a project."""
     r = requests.request(
         "POST",
         url=project_url(debiai_url, id) + "/resultsStructure",
@@ -163,11 +171,7 @@ def post_expected_results(debiai_url, id, expected_results):
 
 
 def add_blocklevel(debiai_url, id, blocklevel):
-    """
-    Add blocklevel to a project block structure
-    Not used very much, should be removed
-    TODO - Check if blocklevel already exists
-    """
+    """Add blocklevel to a project block structure."""
     r = requests.request(
         "POST",
         url=project_url(debiai_url, id) + "/blocklevels",
@@ -179,44 +183,33 @@ def add_blocklevel(debiai_url, id, blocklevel):
     logging.info("Added blocklevel to project " + id)
 
 
-def post_add_expected_results(debiai_url, id, expected_result):
-    """Add expected_result to a project"""
-    r = requests.request(
-        "POST",
-        url=project_url(debiai_url, id) + "/expectedResult",
-        json=expected_result,
-    )
-    if r.status_code != 200:
-        raise ValueError(json.loads(r.text))
-    return json.loads(r.content)
-
-
-def remove_expected_results(debiai_url, id, expected_result):
-    """remove expected_result from a project"""
-    obj = {"value": expected_result}
-
-    r = requests.request(
-        "POST",
-        url=project_url(debiai_url, id) + "/del_expectedResult",
-        json=obj,
-    )
-    if r.status_code != 200:
-        raise ValueError(json.loads(r.text))
-    return json.loads(r.content)
-
-
 # Selections
-def get_selections(debiai_url, id):
-    """Return a project get_selections as JSON"""
+def get_selections(debiai_url, id) -> dict:
+    """Return a project get_selections as JSON."""
     r = requests.request("GET", project_url(debiai_url, id) + "/selections")
     logging.info("get_requests response: " + str(r.status_code))
     logging.info(r.text)
     return json.loads(r.text)
 
 
+def delete_selection(debiai_url, project_id, selection_id) -> bool:
+    """Delete a selection from a project."""
+    try:
+        r = requests.request(
+            "DELETE",
+            url=project_url(debiai_url, project_id) + "/selections/" + selection_id,
+        )
+        if r.status_code != 200:
+            raise ValueError(json.loads(r.text))
+        logging.info("Deleted selection: " + selection_id)
+        return True
+    except requests.exceptions.RequestException:
+        return False
+
+
 # Models
-def post_model(debiai_url, id, name, metadata):
-    """Add to an existing project a tree of samples"""
+def post_model(debiai_url, id, name, metadata) -> bool:
+    """Add to an existing project a tree of samples."""
     data = {"name": name, "metadata": metadata}
 
     r = requests.request("POST", url=project_url(debiai_url, id) + "/models", json=data)
@@ -232,15 +225,12 @@ def post_model(debiai_url, id, name, metadata):
 def post_model_results_dict(
     debiai_url, project_id, modelId, results: dict, expected_results_order: List[str]
 ):
-    """Add to an existing project model some results from a tree dict"""
+    """Add to an existing project model some results from a tree dict."""
     data = {"results": results, "expected_results_order": expected_results_order}
     try:
         r = requests.request(
             "POST",
-            url=project_url(debiai_url, project_id)
-            + "/models/"
-            + modelId
-            + "/resultsDict",
+            url=f"{project_url(debiai_url, project_id)}/models/{modelId}/resultsDict",
             json=data,
         )
 
@@ -253,7 +243,7 @@ def post_model_results_dict(
 
 
 def delete_model(debiai_url, project_id, model_id):
-    """Delete a model from a project"""
+    """Delete a model from a project."""
     try:
         r = requests.request(
             "DELETE",
@@ -268,16 +258,16 @@ def delete_model(debiai_url, project_id, model_id):
 
 
 # Tags
-def get_tags(debiai_url, project_id):
-    """Return a tag as JSON form id"""
+def get_tags(debiai_url, project_id) -> dict:
+    """Return a tag as form id."""
     r = requests.request("GET", url=project_url(debiai_url, project_id) + "/tags")
     logging.info("get_tags response: " + str(r.status_code))
     logging.info(r.text)
     return json.loads(r.text)
 
 
-def get_tag(debiai_url, project_id, tag_id):
-    """Return a tag as JSON form id"""
+def get_tag(debiai_url, project_id, tag_id) -> dict:
+    """Return a tag as form id."""
     r = requests.request(
         "GET",
         url=project_url(debiai_url, project_id) + "/tags/" + str(tag_id),
@@ -287,8 +277,8 @@ def get_tag(debiai_url, project_id, tag_id):
     return json.loads(r.text)
 
 
-def get_samples_from_tag(debiai_url, project_id, tag_id, tag_value):
-    """Return a sample tree (JSON)"""
+def get_samples_from_tag(debiai_url, project_id, tag_id, tag_value) -> dict:
+    """Return a sample tree."""
     r = requests.request(
         "GET",
         url=project_url(debiai_url, project_id)
@@ -304,7 +294,7 @@ def get_samples_from_tag(debiai_url, project_id, tag_id, tag_value):
 # Sample tree
 def post_add_tree(debiai_url, project_id, tree):
     """
-    Add to an existing project a tree of samples
+    Add to an existing project a tree of samples.
 
     The expected tree format :
     [
@@ -344,8 +334,9 @@ def post_add_tree(debiai_url, project_id, tree):
     return True
 
 
-def get_project_samples(debiai_url, project_id, depth=0):
-    """Return a sample tree (JSON)"""
+def get_project_samples(debiai_url, project_id, depth=0) -> dict:
+    """Return a sample tree."""
+
     r = requests.request(
         "GET",
         url=project_url(debiai_url, project_id) + "/blocks?depth=" + str(depth),
@@ -354,55 +345,20 @@ def get_project_samples(debiai_url, project_id, depth=0):
     return json.loads(r.text)
 
 
-def get_samples_from_selection(debiai_url, project_id, selectionId, depth=0):
-    """Return a sample tree (JSON)"""
+def get_samples_from_selection(debiai_url, project_id, selectionId, depth=0) -> dict:
+    """Return a sample tree from a selection."""
+
     r = requests.request(
         "GET",
-        url=project_url(debiai_url, project_id)
-        + "/blocks/"
-        + selectionId
-        + "?depth="
-        + str(depth),
+        url=f"{project_url(debiai_url, project_id)}/blocks/{selectionId}?depth={depth}",
     )
     logging.info("get_samples_from_selection response: " + str(r.status_code))
     return json.loads(r.text)
 
 
-def get_project_training_samples(debiai_url, project_id, start, size):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_project_training_samples response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_training_samples_from_selection(
-    debiai_url, project_id, selectionId, start, size
-):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?selectionId="
-        + selectionId
-        + "&start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_training_samples_from_selection response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
 # Hash
-def check_hash_exist(debiai_url, project_id, hash_list):
-    """Check with backend if hashes exists"""
+def check_hash_exist(debiai_url, project_id, hash_list) -> dict:
+    """Check with backend if hashes exists."""
     data = {"hash_list": hash_list}
 
     try:
@@ -418,18 +374,14 @@ def check_hash_exist(debiai_url, project_id, hash_list):
         raise ValueError("The server returned an unexpected response")
 
 
-def post_results_hash(debiai_url, project_id, modelId, results: dict):
-    """Add to an existing project model some results from a hash tree"""
-    data = {
-        "results": results,
-    }
+def post_results_hash(debiai_url, project_id, modelId, results: dict) -> bool:
+    """Add to an existing project model some results from a hash tree."""
+    data = {"results": results}
+
     try:
         r = requests.request(
             "POST",
-            url=project_url(debiai_url, project_id)
-            + "/models/"
-            + modelId
-            + "/resultsHash",
+            url=f"{project_url(debiai_url, project_id)}/models/{modelId}/resultsHash",
             json=data,
         )
 

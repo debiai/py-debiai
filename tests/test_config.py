@@ -1,4 +1,4 @@
-from debiai.config import DebiaiConfig
+from .config import DebiaiConfig
 
 
 def test_config():
