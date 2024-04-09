@@ -61,3 +61,9 @@ def test_debiai_slash_sharp_slash():
     test_url = debiai_url + "/" + "#" + "/"
     debiai_instance = Debiai(test_url)
     assert debiai_instance.debiai_url == debiai_url
+
+
+def test_debiai_uppercase():
+    test_url = debiai_url.upper()
+    debiai_instance = Debiai(test_url)
+    assert debiai_instance.debiai_url == debiai_url

@@ -46,6 +46,9 @@ class Debiai:
         # Remove trailing slash, sharp then slash
         self.debiai_url = self.debiai_url.rstrip("/#/")
 
+        # Check if the url is in uppercase
+        self.debiai_url = self.debiai_url.lower()
+
         utils.check_back(self.debiai_url)
 
     def get_projects(self) -> List[Debiai_project]:
