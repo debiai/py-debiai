@@ -65,7 +65,7 @@ def timestamp_to_date(timestamp):
 def check_back(debiai_url):
     """Check the connection with backend"""
     try:
-        ret = requests.get(debiai_url + "version")
+        ret = requests.get(debiai_url + "/version")
 
         if "Online" not in ret.text:
             try:

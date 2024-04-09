@@ -22,17 +22,31 @@ class Debiai:
     debiai_url = ""
 
     def __init__(self, debiai_url: str):
-        self.debiai_url = debiai_url
+        self.debiai_url = debiai_url.strip()
 
         # Check if the url is valid
         if self.debiai_url is None or self.debiai_url == "":
             raise ValueError("Backend url cannot be empty")
 
-        # Remove trailing slash
-        if self.debiai_url[-1] == "/":
-            self.debiai_url = self.debiai_url[:-1]
+        # Remove #
+        self.debiai_url = self.debiai_url.removesuffix("#")
 
-        utils.check_back(debiai_url)
+        # Remove trailing slash
+        self.debiai_url = self.debiai_url.rstrip("/")
+
+        # Remove empty space
+        self.debiai_url = self.debiai_url.removesuffix(" ")
+
+        # Remove trailing slash then space
+        self.debiai_url = self.debiai_url.replace("/ ", "")
+
+        # Remove trailing space then slash
+        self.debiai_url = self.debiai_url.replace(" /", "")
+
+        # Remove trailing slash, sharp then slash
+        self.debiai_url = self.debiai_url.rstrip("/#/")
+
+        utils.check_back(self.debiai_url)
 
     def get_projects(self) -> List[Debiai_project]:
         """

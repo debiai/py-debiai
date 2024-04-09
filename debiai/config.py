@@ -11,7 +11,7 @@ class DebiaiConfig:
 
     def __init__(
         self,
-        debiai_app_url: str = "http://localhost:3000/",
+        debiai_app_url: str = "http://localhost:3000",
     ):
         self.debiai_app_url = debiai_app_url
 
