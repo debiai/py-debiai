@@ -10,10 +10,11 @@ class Debiai_model:
     A Debiai project model
     """
 
-    def __init__(self, project, name: str, id: str):
+    def __init__(self, project, name: str, id: str, metadata: dict = {}):
         self.project = project
         self.name = name
         self.id = id
+        self.metadata = metadata
 
     def expected_results_exists(self):
         """
