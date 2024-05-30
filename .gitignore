@@ -6,3 +6,5 @@ build_package/
 htmlcov/
 .coverage
 .pytest_cache
+build/
+*.egg-info/
