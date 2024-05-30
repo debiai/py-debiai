@@ -13,6 +13,7 @@ import utils as utils
 import debiai_utils as debiai_utils
 from .debiai_services.df_to_dict_tree import df_to_dict_tree
 from .debiai_services.np_to_dict import check_np_array, np_to_dict
+import json
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
@@ -406,9 +407,14 @@ class Debiai_project:
         if not name:
             raise ValueError("Can't create the model: The model name is required")
 
+        try:
+            json.dumps(metadata)
+        except TypeError:
+            raise ValueError("The metadata dictionary is not JSON serializable")
+
         # Call the backend
         if utils.post_model(self.debiai_url, self.id, name, metadata):
-            return Debiai_model(self, name, name)
+            return Debiai_model(self, name, name, metadata)
         else:
             return False
 
