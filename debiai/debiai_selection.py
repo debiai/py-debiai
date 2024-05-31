@@ -19,7 +19,7 @@ class Debiai_selection:
         name: str,
         id: str,
         creationDate: int,
-        nbSamples: str,
+        nbSamples: int,
         requestId: str,
     ):
         self.project = project
