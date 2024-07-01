@@ -99,7 +99,7 @@ class Debiai_project:
                 "contexts": [
                     {
                         "name": str,
-                        "type": 'text', 'number', 'boolean',
+                        "type": 'text', 'number', 'boolean', 'list', 'dict',
                         "default"?: str, number,
                         "group"?: str
                     },
@@ -108,7 +108,7 @@ class Debiai_project:
                 "inputs": [
                     {
                         "name": str,
-                        "type": 'text', 'number', 'boolean',
+                        "type": 'text', 'number', 'boolean', 'list', 'dict',
                         "default"?: str, number
                         "group"?: str
                     },
@@ -117,7 +117,7 @@ class Debiai_project:
                 "groundtruth": [
                     {
                         "name": str,
-                        "type": 'text', 'number', 'boolean',
+                        "type": 'text', 'number', 'boolean', 'list', 'dict',
                         "default"?: str, number
                         "group"?: str
                     },
@@ -126,7 +126,7 @@ class Debiai_project:
                 "results": [
                     {
                         "name": str,
-                        "type": 'text', 'number', 'boolean',
+                        "type": 'text', 'number', 'boolean', 'list', 'dict',
                         "default"?: str, number
                         "group"?: str
                     },
@@ -141,6 +141,8 @@ class Debiai_project:
 
         At least one block is required
         """
+
+        valid_types = ["text", "number", "boolean", "list", "dict"]
 
         # Check if blockLevel structure is already created
         proj_info = self.project_infos()
@@ -184,13 +186,14 @@ class Debiai_project:
                                 + block["name"]
                                 + "'"
                             )
-                        if column["type"] not in ["text", "number", "boolean"]:
+                        if column["type"] not in valid_types:
                             raise ValueError(
-                                "Unknown type of the column '"
+                                "Unknown type for column '"
                                 + column["name"]
                                 + "' in the block '"
                                 + block["name"]
-                                + "'. Use : ['text', 'number', 'boolean']"
+                                + "'. Use one of those types : "
+                                + str(valid_types)
                             )
 
                         if "group" in column:
