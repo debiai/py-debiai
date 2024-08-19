@@ -1,4 +1,5 @@
 import pandas as pd
+import math
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
@@ -32,20 +33,18 @@ def df_to_dict_tree(df: pd.DataFrame, block_structure: list):
                     col_index_map[col["name"]] = column.index(col["name"])
 
     # Create a tree json with only the blocks names
-    block_tree_dict = {"childrenInfoList": {}}
+    block_tree_dict = {}
     for sample in data["data"]:
         parent = block_tree_dict
         for level, block_level in enumerate(block_structure):
             block_name = sample[col_index_map[block_level["name"]]]
+            if "childrenInfoList" not in parent:
+                parent["childrenInfoList"] = {}
             if block_name not in parent["childrenInfoList"]:
                 # Add the block to the dict
                 parent["childrenInfoList"][block_name] = __create_block(
                     block_level, sample, col_index_map
                 )
-
-                # if level < len(block_structure) - 1:
-                # Not the sample
-                parent["childrenInfoList"][block_name]["childrenInfoList"] = {}
 
             parent = parent["childrenInfoList"][block_name]
 
@@ -60,7 +59,16 @@ def __create_block(blockLevel: dict, sample: list, col_index_map: dict):
         if DEBIAI_type in blockLevel:
             block[DEBIAI_type] = []
             for col in blockLevel[DEBIAI_type]:
-                block[DEBIAI_type].append(sample[col_index_map[col["name"]]])
+                sample_value = sample[col_index_map[col["name"]]]
+                # If not text and NaN, set to None
+                if (
+                    type(sample_value) is not str
+                    and sample_value is not None
+                    and math.isnan(sample_value)
+                ):
+                    sample_value = None
+
+                block[DEBIAI_type].append(sample_value)
     return block
 
 
