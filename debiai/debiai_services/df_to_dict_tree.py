@@ -63,6 +63,8 @@ def __create_block(blockLevel: dict, sample: list, col_index_map: dict):
                 # If not text and NaN, set to None
                 if (
                     type(sample_value) is not str
+                    and type(sample_value) is not list
+                    and type(sample_value) is not dict
                     and sample_value is not None
                     and math.isnan(sample_value)
                 ):
