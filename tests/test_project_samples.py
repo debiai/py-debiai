@@ -122,3 +122,17 @@ def test_samples_multi_levels():
 
     assert project.add_samples(samples)
     debiai_instance.delete_project(project)
+
+
+def test_samples_null_values():
+    project = create_empty_project()
+    samples_df = pd.DataFrame(
+        {
+            "Image ID": ["image-1", "image-2", "image-3"],
+            "My context 1": ["A", None, "C"],
+            "My context 2": [None, 0.388, None],
+            "My groundtruth 1": [8, 7, 19],
+        }
+    )
+    assert project.add_samples_pd(samples_df)
+    debiai_instance.delete_project(project)
