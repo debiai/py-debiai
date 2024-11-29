@@ -488,23 +488,23 @@ class Debiai_project:
         return None
 
     # Pull data
-    def get_numpy(self) -> np.array:
-        self.get_block_structure()  # Check that the block_structure has been set
+    def get_dataframe(self) -> pd.DataFrame:
+        block_structure = (
+            self.get_block_structure()
+        )  # Check that the block_structure has been set
 
         # Get the project samples_id list
-        # samples_id = utils.get_samples(self.debiai_url, self.id)
+        samples = utils.get_project_samples(self.debiai_url, self.id)
+
+        # Map each values to the block structure
+        for sample_id in samples:
+            sample = samples[sample_id]
+
+            col_index = 0
+            for block_category in block_structure:
+                for block in block_category:
+                    print(block, sample[col_index])
+                    col_index += 1
+                    print("")
 
         return
-
-    def get_dataframe(self) -> pd.DataFrame:
-        # Pull the selected samples from the backend
-        # returns a pd.DataFrame
-        numpy = self.get_numpy()
-        col = numpy[0]
-        df = pd.DataFrame(data=numpy[1:], columns=col)
-
-        # Convert object columns to number columns
-        cols = df.columns[df.dtypes.eq("object")]
-        df[cols] = df[cols].apply(pd.to_numeric, errors="ignore")
-
-        return df

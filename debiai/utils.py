@@ -267,6 +267,60 @@ def delete_model(debiai_url, project_id, model_id):
         return False
 
 
+# Samples
+def get_project_samples(debiai_url, project_id):
+    # Get the project number of samples
+    project = get_project(debiai_url, project_id)
+    project_nbSamples = project["nbSamples"]
+
+    NB_SAMPLES_PER_REQUEST = 4000
+    # Generate a random request ID
+    request_id = str(int(time.time() * 1000000))
+
+    # Get the list of samples
+    samples = {}
+    for i in range(0, project_nbSamples, NB_SAMPLES_PER_REQUEST):
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/dataIdList",
+            json={
+                "from": i,
+                "to": i + NB_SAMPLES_PER_REQUEST - 1,
+                "analysis": {
+                    "id": request_id,
+                    "start": i == 0,
+                    "end": i + NB_SAMPLES_PER_REQUEST >= project_nbSamples,
+                },
+            },
+        )
+        sample_id_list = json.loads(r.text)
+
+        # Download the samples
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/blocksFromSampleIds",
+            json={
+                "sampleIds": sample_id_list,
+                "analysis": {
+                    "id": request_id,
+                    "start": i == 0,
+                    "end": i + NB_SAMPLES_PER_REQUEST >= project_nbSamples,
+                },
+            },
+        )
+
+        # Samples returned are in a {
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        # } Format
+
+        samples = {**samples, **json.loads(r.text)["data"]}
+        print("Downloaded " + str(i + NB_SAMPLES_PER_REQUEST) + " samples")
+
+    return samples
+
+
 # Tags
 def get_tags(debiai_url, project_id):
     """Return a tag as JSON form id"""
@@ -342,56 +396,3 @@ def post_add_tree(debiai_url, project_id, tree):
     elif r.status_code != 200:
         raise ValueError("Internal server error while adding the data tree")
     return True
-
-
-def get_project_samples(debiai_url, project_id, depth=0):
-    """Return a sample tree (JSON)"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id) + "/blocks?depth=" + str(depth),
-    )
-    logging.info("get_project_samples response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_samples_from_selection(debiai_url, project_id, selectionId):
-    """Return a sample tree (JSON)"""
-    print("get_samples_from_selection")
-    r = requests.request(
-        "GET", url=project_url(debiai_url, project_id) + "/selections/" + selectionId
-    )
-    print(r.text)
-    print()
-    return json.loads(r.text)
-
-
-def get_project_training_samples(debiai_url, project_id, start, size):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_project_training_samples response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_training_samples_from_selection(
-    debiai_url, project_id, selectionId, start, size
-):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?selectionId="
-        + selectionId
-        + "&start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_training_samples_from_selection response: " + str(r.status_code))
-    return json.loads(r.text)
