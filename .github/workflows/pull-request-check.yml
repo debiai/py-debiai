@@ -49,3 +49,49 @@ jobs:
           node-version: 18
       - name: Install dependencies and check prettier format
         run: npm install -g cspell && cspell --no-summary --no-progress --no-color .
+
+  version-upgrade-check: # Check that the version is greater than the previous commit version
+    name: Version upgrade check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check branch setup.py version
+        id: version-check
+        run: |
+          VERSION=$(cat setup.py | grep -m1 version | cut -d '"' -f 2)
+          echo "BRANCH_VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Check main setup.py version
+        run: |
+          BRANCH_VERSION=${{ steps.version-check.outputs.BRANCH_VERSION }}
+          PREVIOUS_VERSION=$(cat setup.py | grep -m1 version | cut -d '"' -f 2)
+
+          echo "PREVIOUS_VERSION=$PREVIOUS_VERSION"
+          echo "BRANCH_VERSION=$BRANCH_VERSION"
+
+          if [ "$BRANCH_VERSION" == "" ]; then
+            echo "No version found in current branch."
+            exit 1
+          fi
+
+          if [ "$PREVIOUS_VERSION" == "" ]; then
+            echo "No version found in main branch."
+            exit 1
+          fi
+
+          if [[ $PREVIOUS_VERSION == $BRANCH_VERSION ]]; then
+            echo "Version not upgraded: setup.py version '$PREVIOUS_VERSION' == branch version '$BRANCH_VERSION'."
+            exit 1
+          fi
+
+          if [[ $PREVIOUS_VERSION > $BRANCH_VERSION ]]; then
+            echo "Version not upgraded: setup.py version '$PREVIOUS_VERSION' > branch version '$BRANCH_VERSION'."
+            exit 1
+          fi
+
+          echo "Version upgraded: setup.py version '$PREVIOUS_VERSION' < branch version '$BRANCH_VERSION'."
