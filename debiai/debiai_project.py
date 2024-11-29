@@ -1,4 +1,3 @@
-import hashlib
 import pandas as pd
 import numpy as np
 from typing import List, Union
@@ -10,7 +9,6 @@ from .debiai_tag import Debiai_tag
 
 # Services
 import utils as utils
-import debiai_utils as debiai_utils
 from .debiai_services.df_to_dict_tree import df_to_dict_tree
 from .debiai_services.np_to_dict import check_np_array, np_to_dict
 import json
@@ -433,45 +431,6 @@ class Debiai_project:
         # Call the backend
         utils.delete_model(self.debiai_url, self.id, model.id)
 
-    # Hash
-    def check_hash(self, hash_list: list) -> list:
-        """Check list of hashes with backend"""
-        res = utils.check_hash_exist(self.debiai_url, self.id, hash_list)
-        return res
-
-    def __get_hash_from_df(self, block_name: list, row, map_id: str):
-        """Subfunction creating a path from a row of df and hashing it"""
-        path = ""
-
-        for name in block_name:
-            if name == map_id:
-                path += str(row.name)
-            else:
-                path += str(row[name])
-            path += "/"
-
-        hash = hashlib.sha256(path.encode("utf-8")).hexdigest()
-
-        return hash
-
-    def create_hash(self, df: pd.DataFrame, map_id: str = None) -> pd.DataFrame:
-        """
-        Create a hash column into the df
-        """
-        # Get block names
-        block_name = []
-
-        for block in self.block_structure:
-            block_name.append(block["name"])
-
-        # Create path to hash for each row
-
-        df["hash"] = df.apply(
-            lambda row: self.__get_hash_from_df(block_name, row, map_id), axis=1
-        )
-
-        return df
-
     # Selections
     def get_selections(self) -> List[Debiai_selection]:
         """
@@ -532,20 +491,10 @@ class Debiai_project:
     def get_numpy(self) -> np.array:
         self.get_block_structure()  # Check that the block_structure has been set
 
-        # Pulls all the data
-        sample_tree = utils.get_project_samples(self.debiai_url, self.id)
-        # print(sample_tree)
-        # Create the first row with the column names
-        columns = np.array([])
-        for block in self.block_structure:
-            columns = np.append(columns, block["name"])
-            for debiai_type in DEBIAI_TYPES:
-                if debiai_type in block:
-                    for column in block[debiai_type]:
-                        columns = np.append(columns, column["name"])
+        # Get the project samples_id list
+        # samples_id = utils.get_samples(self.debiai_url, self.id)
 
-        data = debiai_utils.tree_to_array(self.block_structure, sample_tree)
-        return np.vstack([columns, data])
+        return
 
     def get_dataframe(self) -> pd.DataFrame:
         # Pull the selected samples from the backend

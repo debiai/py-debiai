@@ -40,11 +40,11 @@ class Debiai_tag:
 
         values = {}
 
-        for sampleHash in self.tags.keys():
-            if self.tags[sampleHash] in values:
-                values[self.tags[sampleHash]] += 1
+        for sampleId in self.tags.keys():
+            if self.tags[sampleId] in values:
+                values[self.tags[sampleId]] += 1
             else:
-                values[self.tags[sampleHash]] = 1
+                values[self.tags[sampleId]] = 1
 
         return values
 

@@ -2,6 +2,7 @@
   "version": "0.2",
   "language": "en",
   "words": [
+    "__pycache__",
     "astype",
     "AUTOTUNE",
     "blocklevel",
@@ -30,10 +31,10 @@
     "systemx",
     "tfds",
     "untar",
+    "venv",
     "winequality",
     "xtest",
-    "xtrain",
-    "__pycache__"
+    "xtrain"
   ],
   "flagWords": [],
   "ignorePaths": [

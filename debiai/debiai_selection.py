@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 
 import utils as utils
-import debiai_utils as debiai_utils
 
 DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
@@ -38,44 +37,11 @@ class Debiai_selection:
 
     def get_numpy(self) -> np.array:
         # Pulls all the selection data
-        sampleTree = utils.get_samples_from_selection(
-            self.project.debiai_url, self.project.id, self.id
-        )
+        # samples_id = utils.get_samples_from_selection(
+        #     self.project.debiai_url, self.project.id, self.id
+        # )
 
-        block_structure = self.project.project_infos()["blockLevelInfo"]
-
-        """
-            tree structure :
-            [
-                {
-                    'id',
-                    'creationDate',
-                    'groundTruth',
-                    'inputs',
-                    'level',
-                    'metaDataList',
-                    'name',
-                    'parentPath',
-                    'path',
-                    'updateDate',
-                    'version',
-                    'childrenInfoList' : {
-
-                    }
-                }
-            ]
-        """
-        columns = np.array([])
-        # Create the first row with the column names
-        for block in block_structure:
-            columns = np.append(columns, block["name"])
-            for debiai_type in DEBIAI_TYPES:
-                if debiai_type in block:
-                    for column in block[debiai_type]:
-                        columns = np.append(columns, column["name"])
-
-        data = debiai_utils.tree_to_array(block_structure, sampleTree)
-        return np.vstack([columns, data])
+        return
 
     def get_dataframe(self) -> pd.DataFrame:
         # Pull the selected samples from the backend

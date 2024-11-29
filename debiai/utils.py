@@ -354,17 +354,14 @@ def get_project_samples(debiai_url, project_id, depth=0):
     return json.loads(r.text)
 
 
-def get_samples_from_selection(debiai_url, project_id, selectionId, depth=0):
+def get_samples_from_selection(debiai_url, project_id, selectionId):
     """Return a sample tree (JSON)"""
+    print("get_samples_from_selection")
     r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/blocks/"
-        + selectionId
-        + "?depth="
-        + str(depth),
+        "GET", url=project_url(debiai_url, project_id) + "/selections/" + selectionId
     )
-    logging.info("get_samples_from_selection response: " + str(r.status_code))
+    print(r.text)
+    print()
     return json.loads(r.text)
 
 
@@ -398,43 +395,3 @@ def get_training_samples_from_selection(
     )
     logging.info("get_training_samples_from_selection response: " + str(r.status_code))
     return json.loads(r.text)
-
-
-# Hash
-def check_hash_exist(debiai_url, project_id, hash_list):
-    """Check with backend if hashes exists"""
-    data = {"hash_list": hash_list}
-
-    try:
-        r = requests.request(
-            "POST",
-            url=project_url(debiai_url, project_id) + "/check_hash",
-            json=data,
-        )
-        if r.status_code != 200:
-            raise ValueError("check_hash_exist : " + json.loads(r.text))
-        return json.loads(r.text)
-    except json.decoder.JSONDecodeError:
-        raise ValueError("The server returned an unexpected response")
-
-
-def post_results_hash(debiai_url, project_id, modelId, results: dict):
-    """Add to an existing project model some results from a hash tree"""
-    data = {
-        "results": results,
-    }
-    try:
-        r = requests.request(
-            "POST",
-            url=project_url(debiai_url, project_id)
-            + "/models/"
-            + modelId
-            + "/resultsHash",
-            json=data,
-        )
-
-        if r.status_code != 200:
-            raise ValueError("post_model_results_dict : " + json.loads(r.text))
-        return True
-    except json.decoder.JSONDecodeError:
-        raise ValueError("The server returned an unexpected response")
