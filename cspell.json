@@ -30,6 +30,7 @@
     "softmax",
     "systemx",
     "tfds",
+    "tolist",
     "untar",
     "venv",
     "winequality",
@@ -48,6 +49,8 @@
     ".vscode/*",
     "requirements.txt",
     "__pycache__/",
-    "htmlcov/"
+    "htmlcov/",
+    "venv/",
+    "build/"
   ]
 }
