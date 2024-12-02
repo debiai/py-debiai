@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 
 import utils as utils
@@ -19,14 +18,12 @@ class Debiai_selection:
         id: str,
         creationDate: int,
         nbSamples: int,
-        requestId: str,
     ):
         self.project = project
         self.name = name
         self.id = id
         self.creationDate = creationDate
         self.nbSamples = nbSamples
-        self.requestId = requestId
 
     def __repr__(self):
         return (
@@ -35,23 +32,17 @@ class Debiai_selection:
             "number of samples  : '" + str(self.nbSamples) + "'\n"
         )
 
-    def get_numpy(self) -> np.array:
-        # Pulls all the selection data
-        # samples_id = utils.get_samples_from_selection(
-        #     self.project.debiai_url, self.project.id, self.id
-        # )
-
-        return
-
     def get_dataframe(self) -> pd.DataFrame:
-        # Pull the selected samples from the backend
-        # returns a pd.DataFrame
-        numpy = self.get_numpy()
-        col = numpy[0]
-        df = pd.DataFrame(data=numpy[1:], columns=col)
+        block_structure = self.project.get_block_structure()
 
-        # Convert object columns to number columns
-        cols = df.columns[df.dtypes.eq("object")]
-        df[cols] = df[cols].apply(pd.to_numeric, errors="ignore")
+        # Get the project samples_id list
+        samples = utils.get_selection_samples(
+            self.project.debiai_url, self.project.id, self.id, block_structure
+        )
 
-        return df
+        return samples
+
+    def get_samples_id(self):
+        return utils.get_samples_id_from_selection(
+            self.project.debiai_url, self.project.id, self.id
+        )

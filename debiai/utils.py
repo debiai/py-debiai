@@ -215,6 +215,45 @@ def get_selections(debiai_url, id):
     return json.loads(r.text)
 
 
+def post_selection(debiai_url, id, name, samples_id) -> dict:
+    """Post new selection and return selection id"""
+    data = {"selectionName": name, "sampleHashList": samples_id}
+    r = requests.request(
+        "POST",
+        url=project_url(debiai_url, id) + "/selections",
+        json=data,
+    )
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    info = json.loads(r.text)
+    return info
+
+
+def get_samples_id_from_selection(debiai_url, project_id, selection_id) -> List[str]:
+    """Return a list of samples id from a selection"""
+    r = requests.request(
+        "GET",
+        url=project_url(debiai_url, project_id) + "/selections/" + selection_id,
+    )
+    logging.info("get_samples_id_from_selection response: " + str(r.status_code))
+    return json.loads(r.text)
+
+
+def delete_selection(debiai_url, project_id, selection_id):
+    """Delete a selection from a project"""
+    try:
+        r = requests.request(
+            "DELETE",
+            url=project_url(debiai_url, project_id) + "/selections/" + selection_id,
+        )
+        if r.status_code != 200:
+            raise ValueError(json.loads(r.text))
+        logging.info("Deleted selection: " + selection_id)
+        return True
+    except requests.exceptions.RequestException:
+        return False
+
+
 # Models
 def post_model(debiai_url, id, name, metadata):
     """Add to an existing project a tree of samples"""
@@ -310,6 +349,66 @@ def get_project_samples(debiai_url, project_id, block_structure) -> pd.DataFrame
                     "end": i + NB_SAMPLES_PER_REQUEST >= project_nbSamples,
                 },
             },
+        )
+
+        # Samples returned are in a {
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        # } Format
+
+        # Map each values to the block structure
+        # Goal format: a DataFrame
+        samples_data = json.loads(r.text)["data"]
+        sample_dicts = []
+        for sample_id in samples_data:
+            sample = samples_data[sample_id]
+            sample_dict = {"sample_id": sample_id}
+
+            col_index = 0
+            for block in block_structure:
+                sample_dict[block["name"]] = sample[col_index]
+                col_index += 1
+
+                for block_category in DATA_TYPES:
+                    if block_category not in block:
+                        continue
+
+                    for column in block[block_category]:
+                        sample_dict[column["name"]] = sample[col_index]
+                        col_index += 1
+            sample_dicts.append(sample_dict)
+
+        new_dataframe = pd.DataFrame(sample_dicts)
+        dataframe = pd.concat([dataframe, new_dataframe])
+
+    # Sort the dataframe rows by the blocks names
+    block_names = []
+    for block in block_structure:
+        block_names.append(block["name"])
+
+    dataframe = dataframe.sort_values(by=block_names)
+
+    return dataframe
+
+
+def get_selection_samples(
+    debiai_url, project_id, selection_id, block_structure
+) -> pd.DataFrame:
+    DATA_TYPES = ["groundTruth", "contexts", "inputs", "others"]
+    NB_SAMPLES_PER_REQUEST = 4000
+
+    # Get the selection samples
+    samples = get_samples_id_from_selection(debiai_url, project_id, selection_id)
+
+    # Get the samples
+    dataframe = pd.DataFrame()
+    for i in range(0, len(samples), NB_SAMPLES_PER_REQUEST):
+        # Download the samples
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/blocksFromSampleIds",
+            json={"sampleIds": samples[i : i + NB_SAMPLES_PER_REQUEST]},  # noqa
         )
 
         # Samples returned are in a {
