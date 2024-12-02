@@ -10,6 +10,7 @@ import json
 from typing import List
 import time
 import math
+import pandas as pd
 
 # GLOBAL VARIABLES
 logging.basicConfig(filename="debiai.log", filemode="w", level=logging.INFO)
@@ -214,6 +215,45 @@ def get_selections(debiai_url, id):
     return json.loads(r.text)
 
 
+def post_selection(debiai_url, id, name, samples_id) -> dict:
+    """Post new selection and return selection id"""
+    data = {"selectionName": name, "sampleHashList": samples_id}
+    r = requests.request(
+        "POST",
+        url=project_url(debiai_url, id) + "/selections",
+        json=data,
+    )
+    if r.status_code != 200:
+        raise ValueError(json.loads(r.text))
+    info = json.loads(r.text)
+    return info
+
+
+def get_samples_id_from_selection(debiai_url, project_id, selection_id) -> List[str]:
+    """Return a list of samples id from a selection"""
+    r = requests.request(
+        "GET",
+        url=project_url(debiai_url, project_id) + "/selections/" + selection_id,
+    )
+    logging.info("get_samples_id_from_selection response: " + str(r.status_code))
+    return json.loads(r.text)
+
+
+def delete_selection(debiai_url, project_id, selection_id):
+    """Delete a selection from a project"""
+    try:
+        r = requests.request(
+            "DELETE",
+            url=project_url(debiai_url, project_id) + "/selections/" + selection_id,
+        )
+        if r.status_code != 200:
+            raise ValueError(json.loads(r.text))
+        logging.info("Deleted selection: " + selection_id)
+        return True
+    except requests.exceptions.RequestException:
+        return False
+
+
 # Models
 def post_model(debiai_url, id, name, metadata):
     """Add to an existing project a tree of samples"""
@@ -265,6 +305,151 @@ def delete_model(debiai_url, project_id, model_id):
         return True
     except requests.exceptions.RequestException:
         return False
+
+
+# Samples
+def get_project_samples(debiai_url, project_id, block_structure) -> pd.DataFrame:
+    DATA_TYPES = ["groundTruth", "contexts", "inputs", "others"]
+
+    # Get the project number of samples
+    project = get_project(debiai_url, project_id)
+    project_nbSamples = project["nbSamples"]
+
+    NB_SAMPLES_PER_REQUEST = 4000
+    # Generate a random request ID
+    request_id = str(int(time.time() * 1000000))
+
+    # Get the list of samples
+    dataframe = pd.DataFrame()
+    for i in range(0, project_nbSamples, NB_SAMPLES_PER_REQUEST):
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/dataIdList",
+            json={
+                "from": i,
+                "to": i + NB_SAMPLES_PER_REQUEST - 1,
+                "analysis": {
+                    "id": request_id,
+                    "start": i == 0,
+                    "end": i + NB_SAMPLES_PER_REQUEST >= project_nbSamples,
+                },
+            },
+        )
+        sample_id_list = json.loads(r.text)
+
+        # Download the samples
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/blocksFromSampleIds",
+            json={
+                "sampleIds": sample_id_list,
+                "analysis": {
+                    "id": request_id,
+                    "start": i == 0,
+                    "end": i + NB_SAMPLES_PER_REQUEST >= project_nbSamples,
+                },
+            },
+        )
+
+        # Samples returned are in a {
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        # } Format
+
+        # Map each values to the block structure
+        # Goal format: a DataFrame
+        samples_data = json.loads(r.text)["data"]
+        sample_dicts = []
+        for sample_id in samples_data:
+            sample = samples_data[sample_id]
+            sample_dict = {"sample_id": sample_id}
+
+            col_index = 0
+            for block in block_structure:
+                sample_dict[block["name"]] = sample[col_index]
+                col_index += 1
+
+                for block_category in DATA_TYPES:
+                    if block_category not in block:
+                        continue
+
+                    for column in block[block_category]:
+                        sample_dict[column["name"]] = sample[col_index]
+                        col_index += 1
+            sample_dicts.append(sample_dict)
+
+        new_dataframe = pd.DataFrame(sample_dicts)
+        dataframe = pd.concat([dataframe, new_dataframe])
+
+    # Sort the dataframe rows by the blocks names
+    block_names = []
+    for block in block_structure:
+        block_names.append(block["name"])
+
+    dataframe = dataframe.sort_values(by=block_names)
+
+    return dataframe
+
+
+def get_selection_samples(
+    debiai_url, project_id, selection_id, block_structure
+) -> pd.DataFrame:
+    DATA_TYPES = ["groundTruth", "contexts", "inputs", "others"]
+    NB_SAMPLES_PER_REQUEST = 4000
+
+    # Get the selection samples
+    samples = get_samples_id_from_selection(debiai_url, project_id, selection_id)
+
+    # Get the samples
+    dataframe = pd.DataFrame()
+    for i in range(0, len(samples), NB_SAMPLES_PER_REQUEST):
+        # Download the samples
+        r = requests.request(
+            "POST",
+            url=project_url(debiai_url, project_id) + "/blocksFromSampleIds",
+            json={"sampleIds": samples[i : i + NB_SAMPLES_PER_REQUEST]},  # noqa
+        )
+
+        # Samples returned are in a {
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        #  "{sample_id}": [sample_data],
+        # } Format
+
+        # Map each values to the block structure
+        # Goal format: a DataFrame
+        samples_data = json.loads(r.text)["data"]
+        sample_dicts = []
+        for sample_id in samples_data:
+            sample = samples_data[sample_id]
+            sample_dict = {"sample_id": sample_id}
+
+            col_index = 0
+            for block in block_structure:
+                sample_dict[block["name"]] = sample[col_index]
+                col_index += 1
+
+                for block_category in DATA_TYPES:
+                    if block_category not in block:
+                        continue
+
+                    for column in block[block_category]:
+                        sample_dict[column["name"]] = sample[col_index]
+                        col_index += 1
+            sample_dicts.append(sample_dict)
+
+        new_dataframe = pd.DataFrame(sample_dicts)
+        dataframe = pd.concat([dataframe, new_dataframe])
+
+    # Sort the dataframe rows by the blocks names
+    block_names = []
+    for block in block_structure:
+        block_names.append(block["name"])
+
+    dataframe = dataframe.sort_values(by=block_names)
+
+    return dataframe
 
 
 # Tags
@@ -342,99 +527,3 @@ def post_add_tree(debiai_url, project_id, tree):
     elif r.status_code != 200:
         raise ValueError("Internal server error while adding the data tree")
     return True
-
-
-def get_project_samples(debiai_url, project_id, depth=0):
-    """Return a sample tree (JSON)"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id) + "/blocks?depth=" + str(depth),
-    )
-    logging.info("get_project_samples response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_samples_from_selection(debiai_url, project_id, selectionId, depth=0):
-    """Return a sample tree (JSON)"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/blocks/"
-        + selectionId
-        + "?depth="
-        + str(depth),
-    )
-    logging.info("get_samples_from_selection response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_project_training_samples(debiai_url, project_id, start, size):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_project_training_samples response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-def get_training_samples_from_selection(
-    debiai_url, project_id, selectionId, start, size
-):
-    """Return a sample inputs and gdt array ready to be processed"""
-    r = requests.request(
-        "GET",
-        url=project_url(debiai_url, project_id)
-        + "/trainingSamples?selectionId="
-        + selectionId
-        + "&start="
-        + str(start)
-        + "&size="
-        + str(size),
-    )
-    logging.info("get_training_samples_from_selection response: " + str(r.status_code))
-    return json.loads(r.text)
-
-
-# Hash
-def check_hash_exist(debiai_url, project_id, hash_list):
-    """Check with backend if hashes exists"""
-    data = {"hash_list": hash_list}
-
-    try:
-        r = requests.request(
-            "POST",
-            url=project_url(debiai_url, project_id) + "/check_hash",
-            json=data,
-        )
-        if r.status_code != 200:
-            raise ValueError("check_hash_exist : " + json.loads(r.text))
-        return json.loads(r.text)
-    except json.decoder.JSONDecodeError:
-        raise ValueError("The server returned an unexpected response")
-
-
-def post_results_hash(debiai_url, project_id, modelId, results: dict):
-    """Add to an existing project model some results from a hash tree"""
-    data = {
-        "results": results,
-    }
-    try:
-        r = requests.request(
-            "POST",
-            url=project_url(debiai_url, project_id)
-            + "/models/"
-            + modelId
-            + "/resultsHash",
-            json=data,
-        )
-
-        if r.status_code != 200:
-            raise ValueError("post_model_results_dict : " + json.loads(r.text))
-        return True
-    except json.decoder.JSONDecodeError:
-        raise ValueError("The server returned an unexpected response")

@@ -7,6 +7,12 @@
 
 > pytest --cov=debiai --cov-report html -s
 
-Coverage will be available at: __*htmlcov/index.html*__
+Or:
+
+> python -m pytest --cov=debiai --cov-report html -s
+
+## Coverage
+
+Coverage will be available at: **_htmlcov/index.html_**
 
 > firefox htmlcov/index.html

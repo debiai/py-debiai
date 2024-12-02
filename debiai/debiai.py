@@ -106,4 +106,8 @@ class Debiai:
         """
         Remove a project from the server
         """
+        if projectId is None or projectId == "":
+            raise ValueError("Project ID cannot be empty")
+        if type(projectId) is not str:
+            raise ValueError("Project ID must be a string")
         return utils.delete_project(self.debiai_url, projectId)
