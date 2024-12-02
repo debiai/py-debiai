@@ -471,7 +471,6 @@ class Debiai_project:
         new_selection = utils.post_selection(
             self.debiai_url, self.id, selection_name, samples_id
         )
-        print(new_selection)
 
         return Debiai_selection(
             self,

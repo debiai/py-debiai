@@ -37,7 +37,11 @@ def create_empty_project():
 
     project = debiai_instance.create_project(PROJECT_NAME)
     project.set_blockstructure(block_structure)
+    project_block_structure = project.get_block_structure()
+    assert project_block_structure == block_structure
     project.set_expected_results(expected_results)
+    project_expected_results = project.get_expected_results()
+    assert project_expected_results == expected_results
     return project
 
 

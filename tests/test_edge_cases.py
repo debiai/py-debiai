@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 from debiai.debiai import Debiai
-from debiai.debiai_project import Debiai_project, Debiai_selection
+from debiai.debiai_project import Debiai_project
 from debiai.config import get_config
 
 config = get_config()
