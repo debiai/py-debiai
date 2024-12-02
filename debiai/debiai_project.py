@@ -9,11 +9,9 @@ from .debiai_tag import Debiai_tag
 
 # Services
 import utils as utils
-from .debiai_services.df_to_dict_tree import df_to_dict_tree
+from .debiai_services.df_to_dict_tree import df_to_dict_tree, DEBIAI_TYPES
 from .debiai_services.np_to_dict import check_np_array, np_to_dict
 import json
-
-DEBIAI_TYPES = ["contexts", "inputs", "groundTruth", "others"]
 
 
 class Debiai_project:
@@ -489,22 +487,10 @@ class Debiai_project:
 
     # Pull data
     def get_dataframe(self) -> pd.DataFrame:
-        block_structure = (
-            self.get_block_structure()
-        )  # Check that the block_structure has been set
+
+        block_structure = self.get_block_structure()
 
         # Get the project samples_id list
-        samples = utils.get_project_samples(self.debiai_url, self.id)
+        samples = utils.get_project_samples(self.debiai_url, self.id, block_structure)
 
-        # Map each values to the block structure
-        for sample_id in samples:
-            sample = samples[sample_id]
-
-            col_index = 0
-            for block_category in block_structure:
-                for block in block_category:
-                    print(block, sample[col_index])
-                    col_index += 1
-                    print("")
-
-        return
+        return samples

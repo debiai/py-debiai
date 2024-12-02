@@ -10,6 +10,7 @@ import json
 from typing import List
 import time
 import math
+import pandas as pd
 
 # GLOBAL VARIABLES
 logging.basicConfig(filename="debiai.log", filemode="w", level=logging.INFO)
@@ -268,7 +269,9 @@ def delete_model(debiai_url, project_id, model_id):
 
 
 # Samples
-def get_project_samples(debiai_url, project_id):
+def get_project_samples(debiai_url, project_id, block_structure) -> pd.DataFrame:
+    DATA_TYPES = ["groundTruth", "contexts", "inputs", "others"]
+
     # Get the project number of samples
     project = get_project(debiai_url, project_id)
     project_nbSamples = project["nbSamples"]
@@ -278,7 +281,7 @@ def get_project_samples(debiai_url, project_id):
     request_id = str(int(time.time() * 1000000))
 
     # Get the list of samples
-    samples = {}
+    dataframe = pd.DataFrame()
     for i in range(0, project_nbSamples, NB_SAMPLES_PER_REQUEST):
         r = requests.request(
             "POST",
@@ -315,10 +318,39 @@ def get_project_samples(debiai_url, project_id):
         #  "{sample_id}": [sample_data],
         # } Format
 
-        samples = {**samples, **json.loads(r.text)["data"]}
-        print("Downloaded " + str(i + NB_SAMPLES_PER_REQUEST) + " samples")
+        # Map each values to the block structure
+        # Goal format: a DataFrame
+        samples_data = json.loads(r.text)["data"]
+        sample_dicts = []
+        for sample_id in samples_data:
+            sample = samples_data[sample_id]
+            sample_dict = {"sample_id": sample_id}
 
-    return samples
+            col_index = 0
+            for block in block_structure:
+                sample_dict[block["name"]] = sample[col_index]
+                col_index += 1
+
+                for block_category in DATA_TYPES:
+                    if block_category not in block:
+                        continue
+
+                    for column in block[block_category]:
+                        sample_dict[column["name"]] = sample[col_index]
+                        col_index += 1
+            sample_dicts.append(sample_dict)
+
+        new_dataframe = pd.DataFrame(sample_dicts)
+        dataframe = pd.concat([dataframe, new_dataframe])
+
+    # Sort the dataframe rows by the blocks names
+    block_names = []
+    for block in block_structure:
+        block_names.append(block["name"])
+
+    dataframe = dataframe.sort_values(by=block_names)
+
+    return dataframe
 
 
 # Tags
