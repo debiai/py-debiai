@@ -5,7 +5,6 @@ from typing import List, Union
 # Models
 from .debiai_model import Debiai_model
 from .debiai_selection import Debiai_selection
-from .debiai_tag import Debiai_tag
 
 # Services
 import utils as utils
@@ -144,6 +143,9 @@ class Debiai_project:
         proj_info = self.project_infos()
         if proj_info["blockLevelInfo"] != []:
             raise ValueError("Cannot set the blockLevel structure - already created")
+
+        if not isinstance(block_structure, list):
+            raise TypeError("The block structure must be a list")
 
         # Check that there is at least one block
         if not len(block_structure):
@@ -364,7 +366,15 @@ class Debiai_project:
         If one the the required labels are missing, the samples wont be uploaded.
         Any labels that aren't required will be ignored
         """
+
         self.get_block_structure()  # Check that the block_structure has been set
+
+        # Validate the dataframe
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError("The samples must be a pandas DataFrame")
+
+        if df.empty:
+            return False
 
         SAMPLE_CHUNK_SIZE = 5000  # Number of sample that will be added in one chunk
         SAMPLE_TO_UPLOAD = df.shape[0]
@@ -452,6 +462,8 @@ class Debiai_project:
             raise ValueError("The selection name is required")
         if not samples_id:
             raise ValueError("The samples ID list is required")
+        if not isinstance(samples_id, list):
+            raise TypeError("The samples ID list must be a list")
         if not all(isinstance(i, str) for i in samples_id):
             raise ValueError("The samples ID list must be a list of strings")
 
@@ -508,34 +520,6 @@ class Debiai_project:
 
         # Call the backend
         return utils.delete_selection(self.debiai_url, self.id, selection.id)
-
-    # Tags
-    def get_tags(self) -> List[Debiai_tag]:
-        """
-        Get from the backend the list of tags, convert it in objects and returns it
-        """
-        tags_json = utils.get_tags(self.debiai_url, self.id)
-
-        # Convert each request into a debiai_selection object
-        tags = []
-        for t in tags_json:
-            tags.append(
-                Debiai_tag(self, t["id"], t["name"], t["creationDate"], t["updateDate"])
-            )
-        return tags
-
-    def get_tag(self, tag_name: str) -> Union[Debiai_tag, None]:
-        """
-        Get from the backend the list of tags,
-        returns the tag with the given name or none
-        """
-        tags = self.get_tags()
-
-        for t in tags:
-            if t.name == tag_name:
-                return t
-
-        return None
 
     # Pull data
     def get_dataframe(self) -> pd.DataFrame:
